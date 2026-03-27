@@ -647,6 +647,356 @@
       ],
       "correct": 1,
       "explanation": "Un serveur mal configuré expose : services inutiles non désactivés (surface d'attaque élargie), ports ouverts non nécessaires, répertoires web avec listing activé, identifiants par défaut non changés (admin/admin, root/root), versions logicielles non patchées avec CVE connues. Principe : moindre exposition = désactiver TOUT ce qui n'est pas strictement nécessaire. Le scanner Shodan indexe ces serveurs exposés."
+    },
+    {
+      "id": "cm2_013",
+      "chapter": "CM2",
+      "theme": "IDS/IPS",
+      "question": "Quel est le principal inconvénient de la détection par signature (signature-based) dans un IDS/IPS ?",
+      "options": [
+        "Elle génère un taux élevé de faux positifs car elle compare tous les comportements à une norme apprise",
+        "Elle est inefficace contre les attaques zero-day car elles ne possèdent pas encore de signature répertoriée",
+        "Elle consomme davantage de ressources processeur que la détection par anomalie",
+        "Elle ne peut fonctionner que sur les systèmes hôtes et non sur les réseaux"
+      ],
+      "correct": 1,
+      "explanation": "La détection signature-based compare le trafic à une base de données de signatures d'attaques connues. Elle est donc efficace uniquement si l'attaque a déjà été répertoriée. Face à une attaque zero-day (nouvelle, sans signature connue), elle est totalement aveugle. En revanche, c'est la détection par anomalie qui génère un taux élevé de faux positifs, car tout écart par rapport au comportement « normal » appris peut déclencher une alerte."
+    },
+    {
+      "id": "cm2_014",
+      "chapter": "CM2",
+      "theme": "IDS/IPS",
+      "question": "Pourquoi un IDS/IPS peut-il être contourné par un attaquant utilisant le chiffrement ?",
+      "options": [
+        "Les IDS/IPS ne reconnaissent pas le protocole TLS et ignorent ce type de trafic",
+        "L'IDS/IPS ne peut pas inspecter le contenu des paquets chiffrés sans déchiffrement préalable, masquant ainsi le payload malveillant",
+        "Le chiffrement ralentit tellement le trafic que l'IDS/IPS ne peut pas suivre le débit réseau",
+        "Les algorithmes de chiffrement modernes génèrent des patterns identiques aux signatures d'attaques connues"
+      ],
+      "correct": 1,
+      "explanation": "Les IDS/IPS analysent le contenu des paquets pour détecter des signatures ou des comportements anormaux. Si le trafic est chiffré (ex. HTTPS, TLS), le contenu est opaque sans capacité de déchiffrement (SSL inspection). Un attaquant peut donc encapsuler son payload malveillant dans du trafic chiffré pour passer inaperçu. C'est l'une des 4 limites des IDS/IPS citées dans le cours."
+    },
+    {
+      "id": "cm2_015",
+      "chapter": "CM2",
+      "theme": "IDS/IPS",
+      "question": "Parmi les outils suivants, lesquels sont des exemples de NIDS (Network-based IDS) cités dans le cours ?",
+      "options": [
+        "Nagios et Centreon",
+        "Snort et Suricata",
+        "Wireshark et traceroute",
+        "Zabbix et SNMP"
+      ],
+      "correct": 1,
+      "explanation": "Snort et Suricata sont deux exemples de NIDS (Network Intrusion Detection System) cités dans le cours. Ils sont installés sur un segment critique du réseau et surveillent le trafic en contrôlant les paquets pour détecter une activité malveillante ou anormale. Nagios/Centreon/Zabbix sont des outils de supervision réseau (monitoring), et Wireshark est un outil d'analyse de trafic réseau — ces outils n'ont pas de fonction de détection d'intrusion."
+    },
+    {
+      "id": "cm2_016",
+      "chapter": "CM2",
+      "theme": "IDS/IPS",
+      "question": "Sur un réseau à très fort trafic, pourquoi un IDS/IPS peut-il devenir inefficace ?",
+      "options": [
+        "Il sature sa mémoire RAM à cause du stockage des logs et s'arrête automatiquement",
+        "Il peut manquer certains paquets ou ralentir le réseau car il n'arrive pas à analyser tout le trafic en temps réel",
+        "Il génère trop de vraies alertes positives et les administrateurs ne peuvent plus les traiter",
+        "Sa base de signatures ne peut pas être mise à jour pendant les périodes de fort trafic"
+      ],
+      "correct": 1,
+      "explanation": "L'IDS/IPS doit analyser chaque paquet en temps réel. Sur un réseau à fort trafic, cette inspection peut dépasser les capacités de traitement : certains paquets peuvent être manqués (l'attaque n'est pas détectée), ou le délai d'inspection peut ralentir les transmissions légitimes. C'est une limite fondamentale des IDS/IPS en production sur des réseaux à haut débit, citée explicitement dans le cours."
+    },
+    {
+      "id": "cm2_017",
+      "chapter": "CM2",
+      "theme": "IDS/IPS",
+      "question": "Pourquoi la supervision réseau ne remplace-t-elle pas les pare-feux et les IDS/IPS ?",
+      "options": [
+        "Car la supervision est plus coûteuse et réservée aux grandes entreprises",
+        "Car la supervision ne fonctionne qu'en mode passif et ne peut pas analyser les paquets réseau",
+        "Car la supervision surveille la disponibilité et les performances mais ne contrôle pas les accès ni ne détecte les intrusions",
+        "Car les outils de supervision comme Nagios ne supportent pas les protocoles de sécurité modernes"
+      ],
+      "correct": 2,
+      "explanation": "Selon le cours, la supervision réseau « ne remplace pas les autres mécanismes de sécurité comme les pare-feu ou les IDS/IPS ». Son objectif est de surveiller en continu l'état, la disponibilité et les performances des équipements. Elle détecte des pannes ou dégradations de performance, mais ne contrôle pas les accès (rôle du pare-feu) et ne détecte pas les intrusions dans le trafic (rôle de l'IDS/IPS). Ces trois mécanismes sont complémentaires."
+    },
+    {
+      "id": "cm3_008",
+      "chapter": "CM3",
+      "theme": "Continuité d'activité",
+      "question": "Qu'est-ce que le RTO (Recovery Time Objective) ?",
+      "options": [
+        "Le volume maximal de données que l'organisation peut perdre en cas d'incident, mesuré en temps",
+        "La durée maximale admissible pour reprendre une activité après un incident avant d'impacter gravement l'organisation",
+        "Le temps nécessaire pour réaliser une sauvegarde complète de l'infrastructure",
+        "Le délai réglementaire entre deux tests obligatoires du PRA"
+      ],
+      "correct": 1,
+      "explanation": "Le RTO (Recovery Time Objective) est la durée maximale admissible pour reprendre une activité après un incident. La question clé est : « Combien de temps peut-on rester à l'arrêt sans impact inacceptable ? » À ne pas confondre avec le RPO (Recovery Point Objective) qui représente la quantité maximale de données perdables (mesuré en temps) et répond à : « Jusqu'à quel point dans le passé peut-on revenir sans perte critique ? »"
+    },
+    {
+      "id": "cm3_009",
+      "chapter": "CM3",
+      "theme": "Continuité d'activité",
+      "question": "Une entreprise a un RPO de 4h. Un incident survient à 15h00. Quelle est la perte de données maximale acceptable ?",
+      "options": [
+        "Toutes les données depuis le dernier redémarrage des systèmes",
+        "Les données modifiées depuis 11h00 au plus (4h en arrière)",
+        "Aucune perte de données n'est acceptable avec un RPO de 4h",
+        "Les données des 4 dernières sauvegardes incrémentelles"
+      ],
+      "correct": 1,
+      "explanation": "Le RPO de 4h signifie que l'organisation peut tolérer une perte maximale de 4 heures de données. Si un incident survient à 15h00, on peut revenir à l'état du système à 11h00 (15h - 4h) sans dépasser la perte acceptable. En pratique, cela impose que les sauvegardes soient réalisées au moins toutes les 4 heures. Un RPO de 0 signifierait zéro perte de données, ce qui nécessite une réplication en temps réel."
+    },
+    {
+      "id": "cm3_010",
+      "chapter": "CM3",
+      "theme": "Continuité d'activité",
+      "question": "Dans la mise en place d'un PRA/PCA, à quelle étape choisit-on les solutions comme la redondance, le site de secours et les procédures de restauration ?",
+      "options": [
+        "Analyse d'impact métier",
+        "Évaluation des risques et des vulnérabilités",
+        "Définition des stratégies de continuité et de reprise",
+        "Tests et exercices de simulation"
+      ],
+      "correct": 2,
+      "explanation": "Selon le cours, la mise en place d'un PRA/PCA suit 6 étapes dans l'ordre : 1) Analyse d'impact (identifier processus critiques), 2) Évaluation des risques (menaces et vulnérabilités), 3) Définition des stratégies (choisir les solutions : redondance, site de secours, procédures de restauration, sauvegarde), 4) Rédaction et mise en œuvre des plans, 5) Tests et exercices, 6) Maintenance et amélioration continue. Les solutions techniques sont définies à l'étape 3."
+    },
+    {
+      "id": "cm3_011",
+      "chapter": "CM3",
+      "theme": "Types de sauvegarde",
+      "question": "Dans l'exemple du cours (100 Go initiaux, 5 Go de modifications/jour, du lundi au samedi), quel type de sauvegarde consomme le moins d'espace total sur la semaine ?",
+      "options": [
+        "Sauvegarde complète quotidienne (675 Go au total)",
+        "Sauvegarde différentielle (175 Go au total)",
+        "Sauvegarde incrémentielle (125 Go au total)",
+        "Synchronisation en temps réel (100 Go constants)"
+      ],
+      "correct": 2,
+      "explanation": "Selon le tableau du cours : sauvegarde complète quotidienne = 675 Go, différentielle = 175 Go (cumul depuis lundi), incrémentielle = 125 Go (seulement les modifications du jour). L'incrémentielle est la plus économique car elle ne sauvegarde que les fichiers modifiés depuis la dernière sauvegarde (complète ou incrémentielle). Son inconvénient : une restauration plus longue car il faut rejouer toutes les sauvegardes incrémentales depuis la dernière complète."
+    },
+    {
+      "id": "cm3_012",
+      "chapter": "CM3",
+      "theme": "Types de sauvegarde",
+      "question": "Un ransomware chiffre tous les fichiers accessibles en écriture sur le réseau, y compris les sauvegardes classiques. Quelle technologie y résiste spécifiquement ?",
+      "options": [
+        "La sauvegarde différentielle car elle crée une copie distincte chaque semaine",
+        "La synchronisation cloud car les fichiers sont répliqués sur plusieurs datacenters",
+        "La sauvegarde immuable (WORM) car elle ne peut être ni modifiée ni supprimée pendant une période définie",
+        "La sauvegarde incrémentielle car elle conserve uniquement les modifications récentes"
+      ],
+      "correct": 2,
+      "explanation": "Les sauvegardes classiques sont stockées en lecture ET en écriture, ce qui les rend vulnérables aux ransomwares. Les sauvegardes immuables (WORM — Write Once Read Many) ne peuvent pas être modifiées, supprimées, ni chiffrées pendant une période définie. La synchronisation cloud est au contraire dangereuse car les modifications (chiffrement par le ransomware) sont propagées en temps réel sur tous les appareils synchronisés — c'est exactement l'inconvénient de la synchronisation par rapport à une vraie sauvegarde."
+    },
+    {
+      "id": "cm3_013",
+      "chapter": "CM3",
+      "theme": "Continuité d'activité",
+      "question": "Quelles sont les causes d'interruption d'activité d'une organisation selon le cours ?",
+      "options": [
+        "Uniquement les cyberattaques (ransomware, DDoS) et les erreurs humaines",
+        "Cyberattaques, incidents techniques, sinistres physiques et défaillances fournisseurs",
+        "Pannes matérielles, erreurs de configuration et mauvaises pratiques des employés",
+        "Catastrophes naturelles, incendies et actes de malveillance externe uniquement"
+      ],
+      "correct": 1,
+      "explanation": "Le cours identifie 4 grandes catégories de causes d'interruption : 1) Cyberattaques (ransomware, DDoS, compromission), 2) Incidents techniques (panne, défaillance logicielle ou matérielle, erreur humaine), 3) Sinistres physiques (incendie, inondation, catastrophe naturelle, sabotage), 4) Défaillances fournisseurs (rupture de services). Le PRA/PCA doit couvrir toutes ces catégories, pas uniquement les cyberattaques."
+    },
+    {
+      "id": "cm3_014",
+      "chapter": "CM3",
+      "theme": "Sécurisation des échanges",
+      "question": "Un attaquant intercepte la communication entre un client et son serveur et peut à la fois lire ET modifier les données. De quel type d'attaque s'agit-il ?",
+      "options": [
+        "Sniffing — écoute passive du trafic réseau",
+        "Spoofing — usurpation d'identité pour simuler une entité de confiance",
+        "Man-In-The-Middle (MITM) — interception active des communications",
+        "DDoS — saturation du service par des requêtes massives"
+      ],
+      "correct": 2,
+      "explanation": "L'attaque Man-In-The-Middle (MITM) est une interception ACTIVE : l'attaquant se place entre les deux parties et peut lire ET modifier les données en transit, compromettant ainsi la confidentialité ET l'intégrité. Le sniffing est une écoute PASSIVE (lecture seule, sans modification) du trafic non chiffré. Le spoofing est une usurpation d'identité (simuler une entité de confiance). Le DDoS vise uniquement la disponibilité par saturation."
+    },
+    {
+      "id": "cm3_015",
+      "chapter": "CM3",
+      "theme": "Sécurisation des échanges",
+      "question": "Quelle est la différence entre chiffrement symétrique et chiffrement asymétrique ?",
+      "options": [
+        "Le symétrique utilise une clé publique, l'asymétrique utilise deux clés (publique + privée)",
+        "Le symétrique utilise la même clé secrète pour chiffrer et déchiffrer, l'asymétrique utilise une paire clé publique/clé privée",
+        "Le symétrique chiffre les données en transit, l'asymétrique chiffre uniquement les données stockées",
+        "Le symétrique est plus sécurisé mais plus lent, l'asymétrique est plus rapide pour les gros volumes"
+      ],
+      "correct": 1,
+      "explanation": "Le chiffrement symétrique utilise une seule clé secrète partagée pour chiffrer et déchiffrer. Avantage : très rapide, adapté aux gros volumes. Inconvénient : problème de distribution sécurisée de la clé. Le chiffrement asymétrique utilise une paire : clé publique (pour chiffrer) et clé privée (pour déchiffrer). Avantage : sécurisé pour l'authentification, pas de distribution de clé secrète. Inconvénient : plus lent. En pratique, TLS combine les deux : asymétrique pour négocier une clé symétrique de session."
+    },
+    {
+      "id": "cm3_016",
+      "chapter": "CM3",
+      "theme": "Sécurisation des échanges",
+      "question": "Quelle est la différence entre DNS over TLS (DoT) et DNS over HTTPS (DoH) ?",
+      "options": [
+        "DoT chiffre uniquement les réponses DNS, DoH chiffre les requêtes et les réponses",
+        "DoT chiffre les requêtes DNS via TLS sur un port dédié, DoH les encapsule dans des requêtes HTTPS (port 443)",
+        "DoT est utilisé par les résolveurs publics, DoH est réservé aux réseaux d'entreprise",
+        "DoT nécessite un certificat SSL serveur, DoH fonctionne sans certificat"
+      ],
+      "correct": 1,
+      "explanation": "Les deux protocoles chiffrent les requêtes DNS pour éviter l'espionnage et la manipulation. DNS over TLS (DoT) chiffre via TLS sur un port dédié, ce qui le rend identifiable et potentiellement filtrable. DNS over HTTPS (DoH) encapsule les requêtes DNS dans des requêtes HTTPS standard (port 443), les rendant indiscernables du trafic web normal, donc plus difficiles à bloquer. Les deux protègent contre la manipulation DNS et l'écoute réseau."
+    },
+    {
+      "id": "cm3_017",
+      "chapter": "CM3",
+      "theme": "Sécurisation des échanges",
+      "question": "Parmi les cadres réglementaires cités dans le cours, lequel s'applique spécifiquement aux hébergeurs de données de santé en France ?",
+      "options": [
+        "RGPD — Règlement Général sur la Protection des Données",
+        "PCI-DSS — Payment Card Industry Data Security Standard",
+        "HDS — Hébergeurs de Données de Santé",
+        "ISO/IEC 27001 — Système de Management de la Sécurité de l'Information"
+      ],
+      "correct": 2,
+      "explanation": "Selon le tableau des référentiels du cours : HDS (Hébergeurs de Données de Santé) concerne spécifiquement les données de santé, avec comme point clé le chiffrement et l'audit des échanges. Le RGPD concerne les données personnelles (sécurité du traitement), PCI-DSS concerne les données bancaires (protection des données de compte), et ISO/IEC 27001/27002 est un standard international général pour le management de la sécurité de l'information."
+    },
+    {
+      "id": "cm4_007",
+      "chapter": "CM4",
+      "theme": "Bonnes pratiques",
+      "question": "Qu'est-ce que le principe du moindre privilège recommandé dans le cours face au partage d'identifiants ?",
+      "options": [
+        "Utiliser le mot de passe le plus court possible pour que tous les employés puissent le mémoriser",
+        "Accorder à chaque utilisateur uniquement les droits strictement nécessaires à l'exercice de ses fonctions",
+        "Limiter le nombre de comptes administrateurs à une seule personne pour toute l'organisation",
+        "Réduire la durée de vie des sessions actives à 15 minutes pour limiter les risques d'usurpation"
+      ],
+      "correct": 1,
+      "explanation": "Le principe du moindre privilège (least privilege) consiste à n'accorder à chaque utilisateur que les droits nécessaires pour accomplir ses missions, ni plus. Il s'oppose directement au partage de comptes administrateurs qui donnent des droits excessifs à tous. Si un compte est compromis, l'attaquant n'a accès qu'aux ressources autorisées pour ce compte, ce qui limite l'impact de l'intrusion. Ce principe est recommandé avec les comptes individuels et l'audit régulier des droits."
+    },
+    {
+      "id": "cm4_008",
+      "chapter": "CM4",
+      "theme": "Bonnes pratiques",
+      "question": "Un employé quitte l'entreprise. Selon les recommandations du cours, quelle mesure est prioritaire concernant ses accès informatiques ?",
+      "options": [
+        "Changer les mots de passe des comptes partagés auxquels il avait accès dans les 48h",
+        "Archiver ses accès pendant 30 jours avant suppression pour assurer la continuité",
+        "Révoquer immédiatement ses droits d'accès dès son départ",
+        "Transférer ses droits à son remplaçant pour ne pas perdre la productivité"
+      ],
+      "correct": 2,
+      "explanation": "Le cours préconise explicitement la « révocation immédiate des droits d'accès (départ) » comme mesure directe face au partage d'identifiants. Si les accès ne sont pas révoqués immédiatement, un ex-employé peut continuer à accéder aux systèmes (intentionnellement ou non). L'absence de tracabilité dans les comptes partagés rend cette révocation encore plus critique, car on ne sait pas exactement quels accès il possédait. Les comptes individuels facilitent cette révocation ciblée."
+    },
+    {
+      "id": "cm4_009",
+      "chapter": "CM4",
+      "theme": "Bonnes pratiques",
+      "question": "Un employé utilise son ordinateur personnel (non chiffré, sans antivirus à jour) pour accéder aux ressources de l'entreprise via Wi-Fi public. Quelles mesures le cours recommande-t-il ?",
+      "options": [
+        "Interdire formellement tout BYOD et ne distribuer que des équipements d'entreprise certifiés",
+        "Installer un antivirus sur l'ordinateur personnel et le déclarer au service informatique",
+        "Mettre en place une politique BYOD stricte, avec chiffrement obligatoire, VPN et authentification forte (MFA)",
+        "Créer un réseau Wi-Fi invité dédié BYOD sans accès aux ressources internes critiques"
+      ],
+      "correct": 2,
+      "explanation": "Selon le cours, les recommandations BYOD sont : politique BYOD stricte, chiffrement obligatoire des données, utilisation d'un VPN (pour protéger les communications sur Wi-Fi public), authentification forte MFA, et gestion des mises à jour et correctifs. Un ordinateur personnel non géré présente plusieurs risques cumulés : absence de chiffrement (données lisibles si vol), antivirus obsolète (vulnérabilités non corrigées), connexions Wi-Fi public (écoute réseau possible)."
+    },
+    {
+      "id": "cm4_010",
+      "chapter": "CM4",
+      "theme": "Sensibilisation",
+      "question": "Pourquoi organiser une simulation de phishing AVANT la campagne de sensibilisation plutôt qu'après ?",
+      "options": [
+        "Car la législation RGPD impose un audit de vulnérabilité avant toute campagne de formation",
+        "Pour mesurer le niveau de maturité actuel et avoir un exemple concret et parlant pour la sensibilisation",
+        "Car les employés sont moins méfiants avant la formation et cliquent davantage sur les liens",
+        "Pour identifier les employés à risque et les exclure de l'accès aux ressources sensibles"
+      ],
+      "correct": 1,
+      "explanation": "Selon le cours, organiser une simulation de phishing AVANT la sensibilisation sert deux objectifs : analyser les résultats pour évaluer le niveau de maturité actuel, et préparer une restitution globale qui servira d'exemple concret pour la phase de sensibilisation. Un public confronté à ses propres erreurs est plus réceptif. On répète ensuite les simulations APRÈS la sensibilisation pour mesurer l'efficacité du programme et entretenir la vigilance."
+    },
+    {
+      "id": "cm4_011",
+      "chapter": "CM4",
+      "theme": "Sensibilisation",
+      "question": "Pourquoi le cours recommande-t-il de sensibiliser en priorité les directeurs et managers plutôt que l'ensemble du personnel ?",
+      "options": [
+        "Car les managers ont accès à plus de données sensibles et sont donc plus ciblés par les attaques",
+        "Car les collaborateurs suivent l'exemple de leurs responsables, qui légitiment la culture cybersécurité",
+        "Car le budget de sensibilisation est limité et les managers représentent le retour sur investissement maximal",
+        "Car les managers peuvent ensuite former eux-mêmes leurs équipes sans intervention externe"
+      ],
+      "correct": 1,
+      "explanation": "Le cours explique que « les collaborateurs suivent l'exemple de leurs responsables ». Si les managers ne respectent pas les bonnes pratiques (mot de passe simple, clic sur liens suspects), les employés ne les appliqueront pas non plus. La session dédiée aux responsables doit traiter des risques stratégiques et de la responsabilité juridique propres à leurs fonctions, et leur expliquer leur rôle dans la diffusion de la culture cybersécurité au sein de leurs équipes."
+    },
+    {
+      "id": "cm4_012",
+      "chapter": "CM4",
+      "theme": "Sécurité physique",
+      "question": "Dans la situation du cours où un faux technicien installe un dispositif d'interception sur le réseau, quelle recommandation aurait spécifiquement prévenu cet incident ?",
+      "options": [
+        "Installer un pare-feu NGFW pour détecter les connexions anormales sur le réseau interne",
+        "Mettre en place des procédures de vérification d'identité des visiteurs et sensibiliser le personnel d'accueil",
+        "Chiffrer toutes les communications internes avec IPSec pour que l'intercepteur ne puisse rien lire",
+        "Activer la supervision réseau avec SNMP pour détecter les nouveaux équipements connectés"
+      ],
+      "correct": 1,
+      "explanation": "Le scénario du cours décrit un individu qui « prétend être un technicien envoyé pour une maintenance urgente » et que « l'hôtesse le laisse entrer ». Les recommandations spécifiques à l'intrusion physique sont : politique de contrôle d'accès physique stricte, procédures de vérification d'identité des visiteurs, vidéosurveillance, protection physique des accès réseau, et sensibilisation du personnel d'accueil. La faille principale était l'absence de vérification de l'identité du prétendu technicien."
+    },
+    {
+      "id": "cm4_013",
+      "chapter": "CM4",
+      "theme": "Ingénierie sociale",
+      "question": "Selon les métriques de cybermalveillance.gouv.fr citées dans le cours, quelle est la cybermenace la plus fréquente pour les particuliers ?",
+      "options": [
+        "Piratage de compte (18,1%)",
+        "Arnaque au faux support technique (7,3%)",
+        "Hameçonnage/phishing (33,7%)",
+        "Ransomware (12,4%)"
+      ],
+      "correct": 2,
+      "explanation": "Selon les métriques réelles citées dans le cours (cybermalveillance.gouv.fr) : pour les particuliers, l'hameçonnage est n°1 avec 33,7%, suivi du piratage de compte (18,1%) et de l'arnaque au faux support (7,3%). Pour les entreprises : hameçonnage = 20,7%, piratage de compte = 19,6%, ransomware = 12,4%. L'hameçonnage est la première menace pour toutes les catégories, ce qui justifie d'en faire le centre des simulations et campagnes de sensibilisation."
+    },
+    {
+      "id": "cm4_014",
+      "chapter": "CM4",
+      "theme": "Sensibilisation",
+      "question": "Pourquoi le cours recommande-t-il d'utiliser des exemples tirés de la vie privée (vol d'identité, arnaque CPF) dans une campagne de sensibilisation professionnelle ?",
+      "options": [
+        "Car les risques professionnels sont trop confidentiels pour être divulgués lors d'une session collective",
+        "Car les collaborateurs réagissent davantage aux impacts personnels qu'abstraits, facilitant le lien avec les réflexes professionnels",
+        "Car les techniques d'attaque sur la vie personnelle sont différentes et complémentaires de celles ciblant l'entreprise",
+        "Car les exemples d'entreprises concurrentes victimes de cyberattaques sont soumis à la confidentialité"
+      ],
+      "correct": 1,
+      "explanation": "Selon le cours, « les collaborateurs réagissent davantage aux impacts personnels qu'abstraits ». Montrer des cas de vol d'identité, d'arnaques au CPF ou de faux support rend la menace concrète et émotionnellement proche. On peut ensuite établir le lien entre les bons réflexes personnels (ne pas cliquer sur un lien suspect dans un mail personnel) et les réflexes professionnels (même vigilance avec les e-mails professionnels). L'objectif est de créer une culture de vigilance globale."
+    },
+    {
+      "id": "cm4_015",
+      "chapter": "CM4",
+      "theme": "Bonnes pratiques",
+      "question": "Parmi les outils cités dans le cours comme « alternatives concrètes » à proposer lors d'une sensibilisation, lequel est un gestionnaire de mots de passe ?",
+      "options": [
+        "Signal Spam",
+        "GoPhish",
+        "KeePass",
+        "SwordPhish"
+      ],
+      "correct": 2,
+      "explanation": "Selon le cours, il faut toujours proposer des alternatives concrètes, sinon « il ne suffit pas de dire ce qu'il ne faut pas faire ». KeePass est cité comme gestionnaire de mots de passe. Signal Spam permet de signaler les spams/phishing. GoPhish et SwordPhish sont des outils de simulation de campagnes de phishing (pour les équipes sécurité, pas pour les utilisateurs). D'autres alternatives citées : OneDrive for Business (partage sécurisé), VPN, antivirus."
+    },
+    {
+      "id": "cm4_016",
+      "chapter": "CM4",
+      "theme": "Bonnes pratiques",
+      "question": "Face à la situation du cours où une BDD de développement contenant des données clients est accessible publiquement, quelles recommandations le cours propose-t-il ?",
+      "options": [
+        "Utiliser uniquement des bases de données open-source dont le code peut être audité",
+        "Ne jamais exposer de données réelles en développement et restreindre l'accès aux BDD par des pare-feux",
+        "Chiffrer la base de données avec un algorithme AES-256 et ne partager la clé qu'aux développeurs",
+        "Séparer physiquement les serveurs de développement et de production dans des datacenters différents"
+      ],
+      "correct": 1,
+      "explanation": "Selon le cours, les recommandations face à la mauvaise configuration d'un serveur public sont : restreindre l'accès aux BDD via des pare-feux (filtrage IP), ne jamais exposer de données réelles en développement (utiliser des données anonymisées), audits réguliers de configuration et pentests, et chiffrer les données stockées et en transit. Dans ce scénario, deux erreurs se cumulaient : données clients réelles en développement ET absence de restriction d'accès réseau."
     }
   ]
 }
