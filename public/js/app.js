@@ -47,6 +47,8 @@ function navigate(page) {
     fetch('/api/progress').then(r => r.json()).then(p => { PROGRESS = p; renderDashboard(); }).catch(() => renderDashboard());
   }
 
+  if (qcmState.timerInterval) { clearInterval(qcmState.timerInterval); qcmState.timerInterval = null; }
+
   currentPage = page;
   document.querySelectorAll('.nav-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.page === page);
@@ -138,7 +140,7 @@ function getDaysUntilExam() {
   const exam = new Date('2026-03-30');
   const now = new Date();
   const diff = Math.ceil((exam - now) / (1000 * 60 * 60 * 24));
-  return diff > 0 ? diff : 0;
+  return diff > 0 ? diff : null;
 }
 
 function getChapterStats(chapter) {
@@ -340,12 +342,12 @@ function renderQuestion() {
     </div>
 
     <div class="question-card">
-      <div class="question-text">${q.question}</div>
+      <div class="question-text">${escapeHtml(q.question)}</div>
       <div class="options-list" id="options">
         ${shuffled.map((opt, i) => `
           <button class="option-btn" onclick="selectAnswer(${i})" data-idx="${i}">
             <span class="option-letter">${'ABCD'[i]}</span>
-            <span>${opt.text}</span>
+            <span>${escapeHtml(opt.text)}</span>
           </button>
         `).join('')}
       </div>
@@ -395,7 +397,7 @@ function selectAnswer(chosenIdx) {
     <div class="explanation-box">
       ${chosenIdx === -1 ? '<strong>⏱ Temps écoulé !</strong><br>' : ''}
       <strong>${isCorrect ? '✓ Correct !' : '✗ Incorrect.'}</strong><br>
-      ${q.explanation}
+      ${escapeHtml(q.explanation)}
     </div>
     <div class="confidence-row">
       <label>Je savais :</label>
@@ -558,7 +560,7 @@ function renderFCUI() {
       <div class="flashcard ${fcState.flipped ? 'flipped' : ''}" id="fc-card">
         <div class="card-face card-front">
           <div class="card-label">Terme / Concept</div>
-          <div class="card-content">${card.front}</div>
+          <div class="card-content">${escapeHtml(card.front)}</div>
           <div class="card-hint">Clique pour voir la définition</div>
         </div>
         <div class="card-face card-back">
@@ -627,10 +629,12 @@ function shuffleFCAll() {
 }
 
 function escapeHtml(text) {
-  return text
+  return String(text)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
 // ============================================================

@@ -17,9 +17,17 @@ function readData() {
   }
 }
 
+const VALID_ID = /^[a-z0-9_]+$/i;
+const VALID_MODES = ['normal', 'adaptive', 'timed', 'review'];
+const VALID_CONF = ['knew', 'guessed', 'missed', 'unknown'];
+
 function writeData(data) {
   data.lastUpdated = new Date().toISOString();
-  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+  try {
+    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+  } catch (e) {
+    console.error('writeData failed:', e.message);
+  }
 }
 
 // GET progress
@@ -29,35 +37,42 @@ app.get('/api/progress', (req, res) => {
 
 // POST session result
 app.post('/api/session', (req, res) => {
-  const data = readData();
   const { answers, mode, chapter, duration } = req.body;
 
-  // Save session summary
+  if (!Array.isArray(answers) || answers.length === 0) {
+    return res.status(400).json({ error: 'answers must be a non-empty array' });
+  }
+
+  const data = readData();
+
   const session = {
     date: new Date().toISOString(),
-    mode: mode || 'normal',
-    chapter: chapter || 'all',
-    duration: duration || 0,
+    mode: VALID_MODES.includes(mode) ? mode : 'normal',
+    chapter: typeof chapter === 'string' ? chapter.slice(0, 20) : 'all',
+    duration: Math.min(Math.max(0, parseInt(duration) || 0), 86400),
     total: answers.length,
     correct: answers.filter(a => a.correct).length,
-    answers: answers.map(a => ({
-      id: a.id,
-      correct: a.correct,
-      confidence: a.confidence || 'unknown'
-    }))
+    answers: answers
+      .filter(a => VALID_ID.test(a.id))
+      .map(a => ({
+        id: a.id,
+        correct: Boolean(a.correct),
+        confidence: VALID_CONF.includes(a.confidence) ? a.confidence : 'unknown'
+      }))
   };
   data.sessions.unshift(session);
   if (data.sessions.length > 50) data.sessions = data.sessions.slice(0, 50);
 
-  // Update per-question stats
   for (const answer of answers) {
+    if (!VALID_ID.test(answer.id)) continue; // rejette __proto__ etc.
     if (!data.questionStats[answer.id]) {
       data.questionStats[answer.id] = { attempts: 0, correct: 0, confidences: [], lastSeen: '' };
     }
     const stat = data.questionStats[answer.id];
     stat.attempts++;
     if (answer.correct) stat.correct++;
-    if (answer.confidence) stat.confidences.push(answer.confidence);
+    const conf = VALID_CONF.includes(answer.confidence) ? answer.confidence : null;
+    if (conf) stat.confidences.push(conf);
     if (stat.confidences.length > 10) stat.confidences = stat.confidences.slice(-10);
     stat.lastSeen = new Date().toISOString();
   }
