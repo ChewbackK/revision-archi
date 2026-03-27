@@ -37,19 +37,31 @@ async function saveSession(answers, mode, chapter, duration) {
 // ============================================================
 let currentPage = 'home';
 
+function qcmSessionActive() {
+  return qcmState.questions.length > 0 && qcmState.current < qcmState.questions.length;
+}
+
 function navigate(page) {
+  // Reload progress when visiting dashboard so stats are fresh
+  if (page === 'dashboard') {
+    fetch('/api/progress').then(r => r.json()).then(p => { PROGRESS = p; renderDashboard(); }).catch(() => renderDashboard());
+  }
+
   currentPage = page;
   document.querySelectorAll('.nav-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.page === page);
+    if (b.dataset.page === 'qcm') {
+      b.textContent = qcmSessionActive() && page !== 'qcm' ? '📝 QCM ●' : '📝 QCM';
+    }
   });
-  const app = document.getElementById('app');
-  app.innerHTML = '';
+  document.getElementById('app').innerHTML = '';
+
   switch (page) {
-    case 'home': renderHome(); break;
-    case 'qcm': renderQCMSetup(); break;
+    case 'home':       renderHome(); break;
+    case 'qcm':        qcmSessionActive() ? renderQuestion() : renderQCMSetup(); break;
     case 'flashcards': renderFlashcards(); break;
-    case 'cours': renderCours(); break;
-    case 'dashboard': renderDashboard(); break;
+    case 'cours':      renderCours(); break;
+    case 'dashboard':  break; // handled by fetch above
   }
 }
 
@@ -437,6 +449,7 @@ function nextQuestion() {
 async function finishQCM() {
   const duration = Math.round((Date.now() - qcmState.startTime) / 1000);
   await saveSession(qcmState.answers, qcmState.mode, qcmState.chapter, duration);
+  qcmState.questions = []; // session terminée, plus de reprise possible
 
   const correct = qcmState.answers.filter(a => a.correct).length;
   const total = qcmState.answers.length;
