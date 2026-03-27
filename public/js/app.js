@@ -335,6 +335,12 @@ function renderQuestion() {
   const pct = Math.round((idx / total) * 100);
   const isTimed = qcmState.mode === 'timed';
 
+  // Shuffle options, keep track of where the correct answer ended up
+  const optionsWithIdx = q.options.map((text, i) => ({ text, originalIdx: i }));
+  const shuffled = shuffle(optionsWithIdx);
+  qcmState.shuffledOptions = shuffled;
+  qcmState.shuffledCorrectIdx = shuffled.findIndex(o => o.originalIdx === q.correct);
+
   document.getElementById('app').innerHTML = `
     <div class="qcm-header">
       <div style="color:var(--text2);font-size:0.875rem">${idx + 1} / ${total}</div>
@@ -352,10 +358,10 @@ function renderQuestion() {
     <div class="question-card">
       <div class="question-text">${q.question}</div>
       <div class="options-list" id="options">
-        ${q.options.map((opt, i) => `
+        ${shuffled.map((opt, i) => `
           <button class="option-btn" onclick="selectAnswer(${i})" data-idx="${i}">
             <span class="option-letter">${'ABCD'[i]}</span>
-            <span>${opt}</span>
+            <span>${opt.text}</span>
           </button>
         `).join('')}
       </div>
@@ -388,13 +394,14 @@ function selectAnswer(chosenIdx) {
   if (qcmState.timerInterval) clearInterval(qcmState.timerInterval);
 
   const q = qcmState.questions[qcmState.current];
-  const isCorrect = chosenIdx === q.correct;
+  const correctIdx = qcmState.shuffledCorrectIdx;
+  const isCorrect = chosenIdx === correctIdx;
   qcmState.selectedConfidence = null;
 
   // Disable all buttons
   document.querySelectorAll('.option-btn').forEach((btn, i) => {
     btn.disabled = true;
-    if (i === q.correct) btn.classList.add('correct');
+    if (i === correctIdx) btn.classList.add('correct');
     else if (i === chosenIdx && !isCorrect) btn.classList.add('selected-wrong');
   });
 
@@ -427,7 +434,7 @@ function selectAnswer(chosenIdx) {
     chosen: chosenIdx,
     correct: isCorrect,
     correctAnswer: q.options[q.correct],
-    chosenAnswer: chosenIdx >= 0 ? q.options[chosenIdx] : 'Timeout',
+    chosenAnswer: chosenIdx >= 0 ? qcmState.shuffledOptions[chosenIdx].text : 'Timeout',
     confidence: null
   });
 }
