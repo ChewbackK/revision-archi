@@ -238,11 +238,11 @@ function selectQuestionsForSession() {
   if (qcmState.mode === 'review') {
     pool = pool.filter(q => {
       const s = PROGRESS.questionStats[q.id];
-      if (!s || s.attempts === 0) return true; // never seen = include
+      if (!s || s.attempts === 0) return false; // jamais tentée ≠ erreur
       return (s.correct / s.attempts) < 0.6;
     });
     if (pool.length === 0) {
-      alert('Bravo ! Aucune question avec moins de 60% de réussite. Essaie le mode normal ou adaptatif.');
+      alert('Aucune erreur à réviser ! Tu as réussi toutes les questions tentées à plus de 60%. Lance une session normale pour en découvrir de nouvelles.');
       return [];
     }
   }
