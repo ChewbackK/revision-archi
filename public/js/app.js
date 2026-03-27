@@ -199,50 +199,22 @@ function renderQCMSetup() {
         </div>
       </div>
 
-      <div id="mode-hint" style="color:var(--text2);font-size:0.875rem;margin-top:-0.5rem"></div>
+      <div style="color:var(--text2);font-size:0.875rem;margin-top:-0.5rem">${{
+        normal: "Questions dans l'ordre aléatoire.",
+        adaptive: "Les questions que tu rates reviennent plus souvent.",
+        timed: "30 secondes par question. Répondre avant la fin du chrono !",
+        review: "Uniquement les questions avec moins de 60% de réussite."
+      }[qcmState.mode]}</div>
 
       <button class="btn-primary" onclick="startQCM()">Commencer →</button>
     </div>
   `;
-  updateModeHint();
 }
 
-function selectChapter(v) {
-  qcmState.chapter = v;
-  document.querySelectorAll('#chapterGroup .btn-toggle').forEach(b => {
-    b.classList.toggle('active', b.dataset.val === v);
-  });
-}
+function selectChapter(v) { qcmState.chapter = v; renderQCMSetup(); }
+function selectMode(v)    { qcmState.mode = v;    renderQCMSetup(); }
+function selectCount(v)   { qcmState.count = v;   renderQCMSetup(); }
 
-function selectMode(v) {
-  qcmState.mode = v;
-  document.querySelectorAll('.btn-group .btn-toggle').forEach(b => {
-    if (['Normal', '🧠 Adaptatif', '⏱ Chrono (30s/q)', '🔄 Erreurs'].includes(b.textContent)) {
-      b.classList.toggle('active', b.textContent.includes(v) || b.textContent === v);
-    }
-  });
-  // Re-render to properly update buttons
-  renderQCMSetup();
-}
-
-function selectCount(v) {
-  qcmState.count = v;
-  document.querySelectorAll('.form-group:last-of-type .btn-toggle').forEach(b => {
-    const bv = b.textContent === 'Tout' ? 999 : parseInt(b.textContent);
-    b.classList.toggle('active', bv === v);
-  });
-}
-
-function updateModeHint() {
-  const hints = {
-    normal: 'Questions dans l\'ordre aléatoire.',
-    adaptive: 'Les questions que tu rates reviennent plus souvent. Utilise tes stats pour prioriser les points faibles.',
-    timed: '30 secondes par question. Répondre avant la fin du chrono !',
-    review: 'Uniquement les questions avec moins de 60% de réussite.'
-  };
-  const el = document.getElementById('mode-hint');
-  if (el) el.textContent = hints[qcmState.mode] || '';
-}
 
 function selectQuestionsForSession() {
   let pool = [...QCM_DATA.questions];
