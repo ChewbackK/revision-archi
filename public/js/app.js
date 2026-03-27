@@ -110,7 +110,7 @@ function renderHome() {
       <div class="home-card" onclick="navigate('cours')">
         <div class="icon">📖</div>
         <h3>Résumés cours</h3>
-        <p>CM1 à CM4 condensés</p>
+        <p>${Object.keys(QCM_DATA.chapters).join(', ')} condensés</p>
       </div>
       <div class="home-card" onclick="navigate('dashboard')">
         <div class="icon">📊</div>
@@ -120,15 +120,10 @@ function renderHome() {
     </div>
 
     <div class="chapters-row">
-      ${[
-        { id: 'CM1', title: 'CM1 — Active Directory', color: '#7c3aed' },
-        { id: 'CM2', title: 'CM2 — Réseaux', color: '#0891b2' },
-        { id: 'CM3', title: 'CM3 — Sauvegardes', color: '#059669' },
-        { id: 'CM4', title: 'CM4 — Bonnes pratiques', color: '#d97706' }
-      ].map(ch => {
-        const stats = getChapterStats(ch.id);
+      ${Object.entries(QCM_DATA.chapters).map(([id, ch]) => {
+        const stats = getChapterStats(id);
         return `<div class="chapter-pill" style="background:${ch.color}22;border:1px solid ${ch.color}55;color:${ch.color}dd">
-          <div style="font-weight:700">${ch.title}</div>
+          <div style="font-weight:700">${id} — ${ch.title}</div>
           <div style="font-size:0.8rem;opacity:0.8;margin-top:0.25rem">${stats.seen}/${stats.total} questions vues · ${stats.pct}% réussi</div>
         </div>`;
       }).join('')}
@@ -181,13 +176,7 @@ function renderQCMSetup() {
       <div class="form-group">
         <label>Chapitre</label>
         <div class="btn-group" id="chapterGroup">
-          ${[
-            ['all', '🎯 Tout'],
-            ['CM1', 'CM1 — AD'],
-            ['CM2', 'CM2 — Réseaux'],
-            ['CM3', 'CM3 — Sauvegardes'],
-            ['CM4', 'CM4 — Pratiques']
-          ].map(([val, label]) =>
+          ${[['all', '🎯 Tout'], ...Object.entries(QCM_DATA.chapters).map(([id, ch]) => [id, `${id} — ${ch.title}`])].map(([val, label]) =>
             `<button class="btn-toggle ${qcmState.chapter === val ? 'active' : ''}" data-val="${val}" onclick="selectChapter('${val}')">${label}</button>`
           ).join('')}
         </div>
@@ -337,7 +326,7 @@ function renderQuestion() {
     </div>
 
     <div class="q-meta">
-      <span class="badge badge-${q.chapter.toLowerCase()}">${q.chapter}</span>
+      ${chapterBadge(q.chapter)}
       <span class="badge badge-theme">${q.theme}</span>
     </div>
 
@@ -545,14 +534,14 @@ function renderFCUI() {
     <div class="section-title">🃏 Flashcards</div>
 
     <div class="fc-controls">
-      ${[['all', 'Tout'], ['CM1', 'CM1'], ['CM2', 'CM2'], ['CM3', 'CM3'], ['CM4', 'CM4']].map(([v, l]) =>
+      ${[['all', 'Tout'], ...Object.keys(QCM_DATA.chapters).map(id => [id, id])].map(([v, l]) =>
         `<button class="btn-toggle ${fcState.chapter === v ? 'active' : ''}" onclick="changeFCChapter('${v}')">${l}</button>`
       ).join('')}
       <span class="fc-progress">${fcState.current + 1} / ${total}</span>
     </div>
 
     <div class="q-meta" style="margin-bottom:1rem">
-      <span class="badge badge-${card.chapter.toLowerCase()}">${card.chapter}</span>
+      ${chapterBadge(card.chapter)}
       <span class="badge badge-theme">${card.theme}</span>
     </div>
 
@@ -628,6 +617,12 @@ function shuffleFCAll() {
   renderFCUI();
 }
 
+function chapterBadge(chapter) {
+  const ch = QCM_DATA.chapters[chapter];
+  const color = ch ? ch.color : '#6b7280';
+  return `<span class="badge" style="background:${color}22;color:${color};border:1px solid ${color}44">${escapeHtml(chapter)}</span>`;
+}
+
 function escapeHtml(text) {
   return String(text)
     .replace(/&/g, '&amp;')
@@ -640,7 +635,7 @@ function escapeHtml(text) {
 // ============================================================
 // COURS
 // ============================================================
-let coursState = { chapter: 'CM1', openSections: new Set() };
+let coursState = { chapter: null, openSections: new Set() };
 
 function renderCours() {
   const chapter = COURS_DATA.find(c => c.id === coursState.chapter) || COURS_DATA[0];
@@ -649,9 +644,9 @@ function renderCours() {
     <div class="cours-layout">
       <nav class="cours-nav">
         ${COURS_DATA.map(ch => `
-          <div class="cours-nav-item ${coursState.chapter === ch.id ? 'active ' + ch.id.toLowerCase() : ''}"
+          <div class="cours-nav-item ${coursState.chapter === ch.id ? 'active' : ''}"
                onclick="selectCoursChapter('${ch.id}')"
-               style="color: ${coursState.chapter === ch.id ? '' : 'var(--text2)'}">
+               style="${coursState.chapter === ch.id ? `border-left-color:${ch.color}` : 'color:var(--text2)'}">
             ${ch.id} — ${ch.title}
           </div>
         `).join('')}
@@ -805,7 +800,7 @@ function renderDashboard() {
     </div>
 
     <div class="chapter-stats">
-      ${['CM1', 'CM2', 'CM3', 'CM4'].map(ch => {
+      ${Object.keys(QCM_DATA.chapters).map(ch => {
         const chQ = allQ.filter(q => q.chapter === ch);
         const chStats = chQ.map(q => stats[q.id]).filter(Boolean);
         const chAttempts = chStats.reduce((s, v) => s + v.attempts, 0);

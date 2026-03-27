@@ -11,10 +11,6 @@
   --red: #ef4444;
   --yellow: #f59e0b;
   --blue: #3b82f6;
-  --cm1: #7c3aed;
-  --cm2: #0891b2;
-  --cm3: #059669;
-  --cm4: #d97706;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -254,10 +250,6 @@ main {
   border-radius: 100px;
   font-weight: 600;
 }
-.badge-cm1 { background: #7c3aed22; color: #a78bfa; border: 1px solid #7c3aed44; }
-.badge-cm2 { background: #0891b222; color: #67e8f9; border: 1px solid #0891b244; }
-.badge-cm3 { background: #05966922; color: #34d399; border: 1px solid #05966944; }
-.badge-cm4 { background: #d9770622; color: #fbbf24; border: 1px solid #d9770644; }
 .badge-theme { background: var(--bg3); color: var(--text2); border: 1px solid var(--border); }
 
 .question-card {
@@ -575,10 +567,6 @@ main {
 .cours-nav-item:last-child { border-bottom: none; }
 .cours-nav-item:hover { background: var(--bg3); }
 .cours-nav-item.active { background: var(--bg3); }
-.cours-nav-item.active.cm1 { border-left-color: var(--cm1); }
-.cours-nav-item.active.cm2 { border-left-color: var(--cm2); }
-.cours-nav-item.active.cm3 { border-left-color: var(--cm3); }
-.cours-nav-item.active.cm4 { border-left-color: var(--cm4); }
 
 .cours-content-area { min-height: 400px; }
 
