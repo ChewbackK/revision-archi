@@ -1,0 +1,652 @@
+{
+  "chapters": {
+    "CM1": {
+      "title": "Sécurité Active Directory",
+      "color": "#7c3aed"
+    },
+    "CM2": {
+      "title": "Sécurité des réseaux",
+      "color": "#0891b2"
+    },
+    "CM3": {
+      "title": "Sauvegardes et continuité",
+      "color": "#059669"
+    },
+    "CM4": {
+      "title": "Bonnes pratiques",
+      "color": "#d97706"
+    }
+  },
+  "questions": [
+    {
+      "id": "cm1_001",
+      "chapter": "CM1",
+      "theme": "Architecture AD",
+      "question": "Que contient le fichier NTDS.dit sur un contrôleur de domaine ?",
+      "options": [
+        "Les journaux d'événements Windows",
+        "La base de données Active Directory avec tous les objets, attributs et hashes des mots de passe",
+        "Les scripts de connexion et les GPO",
+        "Les certificats SSL du domaine"
+      ],
+      "correct": 1,
+      "explanation": "NTDS.dit est la base de données principale d'AD, stockée sur chaque DC. Elle contient tous les objets (utilisateurs, groupes, ordinateurs) et leurs attributs, y compris les hashes des mots de passe (NTLM). C'est pourquoi elle est la cible des attaques DCSync et Pass-the-Hash."
+    },
+    {
+      "id": "cm1_002",
+      "chapter": "CM1",
+      "theme": "Architecture AD",
+      "question": "Quel est le rôle de SYSVOL dans Active Directory ?",
+      "options": [
+        "Stocker les hashes des mots de passe des utilisateurs",
+        "Héberger les scripts de connexion et les GPO, répliqués entre tous les DC via DFSR",
+        "Gérer les certificats SSL du domaine",
+        "Synchroniser les horodatages entre contrôleurs de domaine"
+      ],
+      "correct": 1,
+      "explanation": "SYSVOL est un dossier partagé sur tous les DC contenant les scripts de connexion et les GPO. Il est répliqué entre DC via DFSR (Distributed File System Replication). C'est distinct de NTDS.dit qui contient les objets AD."
+    },
+    {
+      "id": "cm1_003",
+      "chapter": "CM1",
+      "theme": "Architecture AD",
+      "question": "Quelle est la hiérarchie correcte dans Active Directory, de la plus petite à la plus grande unité ?",
+      "options": [
+        "Forêt → Arbre → Domaine → OU",
+        "OU → Domaine → Arbre → Forêt",
+        "Domaine → OU → Arbre → Forêt",
+        "OU → Arbre → Domaine → Forêt"
+      ],
+      "correct": 1,
+      "explanation": "La hiérarchie AD : OU (unité organisationnelle, pour organiser les objets dans un domaine) ⊂ Domaine ⊂ Arbre (domaines liés partageant un espace de noms continu) ⊂ Forêt (ensemble d'arbres partageant le même schéma et catalogue global)."
+    },
+    {
+      "id": "cm1_004",
+      "chapter": "CM1",
+      "theme": "Protocoles AD",
+      "question": "Sur quel port LDAP communique-t-il par défaut avec le contrôleur de domaine ?",
+      "options": [
+        "443",
+        "3389",
+        "389",
+        "88"
+      ],
+      "correct": 2,
+      "explanation": "LDAP utilise le port 389 par défaut. LDAPS (LDAP sécurisé) utilise le port 636. Kerberos utilise le port 88. RDP utilise 3389. HTTPS utilise 443."
+    },
+    {
+      "id": "cm1_005",
+      "chapter": "CM1",
+      "theme": "Protocoles AD",
+      "question": "Quel est le rôle du KDC (Key Distribution Center) dans le protocole Kerberos ?",
+      "options": [
+        "Chiffrer les communications réseau entre clients et serveurs",
+        "Gérer les certificats SSL du domaine",
+        "Assurer l'authentification (AS) et émettre les tickets TGT/TGS via le TGS",
+        "Synchroniser les mots de passe entre contrôleurs de domaine"
+      ],
+      "correct": 2,
+      "explanation": "Le KDC est le composant central de Kerberos, hébergé sur le DC. Il comprend : l'Authentication Server (AS) qui vérifie l'identité et émet le TGT, et le Ticket Granting Server (TGS) qui échange le TGT contre des tickets de service (TGS) pour accéder aux ressources."
+    },
+    {
+      "id": "cm1_006",
+      "chapter": "CM1",
+      "theme": "Protocoles AD",
+      "question": "Comment fonctionne l'authentification NTLM (mécanisme challenge/response) ?",
+      "options": [
+        "Le client envoie son mot de passe en clair au serveur",
+        "Le serveur envoie un challenge aléatoire de 64 bits, le client répond en le chiffrant avec le hash NT de son mot de passe",
+        "Le client demande un ticket TGT au KDC puis le présente au serveur",
+        "Le serveur vérifie le certificat SSL du client"
+      ],
+      "correct": 1,
+      "explanation": "NTLM : le serveur envoie un challenge aléatoire, le client le chiffre avec le hash NT de son mot de passe et renvoie la réponse. Le serveur vérifie en faisant le même calcul (avec le hash stocké dans NTDS.dit). Le mot de passe n'est jamais transmis, mais le hash suffit — d'où Pass-the-Hash."
+    },
+    {
+      "id": "cm1_007",
+      "chapter": "CM1",
+      "theme": "Attaques AD",
+      "question": "En quoi consiste l'attaque Pass-the-Hash ?",
+      "options": [
+        "Craquer le mot de passe d'un utilisateur par force brute hors ligne",
+        "S'authentifier directement avec le hash NT sans avoir besoin du mot de passe en clair",
+        "Capturer le ticket TGT d'un utilisateur sur le réseau",
+        "Modifier les hashes stockés dans NTDS.dit"
+      ],
+      "correct": 1,
+      "explanation": "Pass-the-Hash exploite le fait que NTLM accepte le hash NT directement (pas besoin du mot de passe). Un attaquant qui récupère le hash (via NTDS.dit ou la mémoire lsass.exe) peut s'authentifier sans jamais déchiffrer le mot de passe. Outil typique : Impacket psexec."
+    },
+    {
+      "id": "cm1_008",
+      "chapter": "CM1",
+      "theme": "Attaques AD",
+      "question": "Quelle est la condition préalable minimale pour réussir une attaque Kerberoasting ?",
+      "options": [
+        "Avoir les droits d'administrateur du domaine",
+        "Être sur le même sous-réseau que le contrôleur de domaine",
+        "Posséder n'importe quel compte valide sur le domaine",
+        "Avoir désactivé la pré-authentification Kerberos"
+      ],
+      "correct": 2,
+      "explanation": "Pour le Kerberoasting, il suffit d'un compte valide sur le domaine (même sans privilèges). L'attaquant demande des tickets TGS pour tous les comptes ayant un SPN, puis tente de cracker ces tickets hors ligne par force brute — car ils sont chiffrés avec le hash du mot de passe du compte de service."
+    },
+    {
+      "id": "cm1_009",
+      "chapter": "CM1",
+      "theme": "Attaques AD",
+      "question": "Pourquoi les comptes machines ne sont-ils PAS des cibles viables pour le Kerberoasting ?",
+      "options": [
+        "Les comptes machines n'ont pas de SPN",
+        "Les comptes machines ont des mots de passe de 128 caractères aléatoires renouvelés tous les 30 jours — impossible à craquer",
+        "Les comptes machines ne peuvent pas émettre de tickets TGS",
+        "Les comptes machines sont protégés par un chiffrement AES-256 spécifique"
+      ],
+      "correct": 1,
+      "explanation": "Les comptes machines ont des mots de passe générés aléatoirement de 128 caractères, renouvelés automatiquement tous les 30 jours par l'AD. Aucune attaque par force brute n'est viable. En revanche, les comptes utilisateurs avec SPN n'ont généralement pas cette politique stricte — ce sont les cibles privilégiées."
+    },
+    {
+      "id": "cm1_010",
+      "chapter": "CM1",
+      "theme": "Attaques AD",
+      "question": "Quelle vulnérabilité spécifique permet l'attaque AS-REP Roasting ?",
+      "options": [
+        "Un SPN mal configuré sur un compte utilisateur",
+        "La pré-authentification Kerberos désactivée sur un compte utilisateur",
+        "Un mot de passe identique entre deux comptes du domaine",
+        "Des droits de réplication accordés à un utilisateur non-admin"
+      ],
+      "correct": 1,
+      "explanation": "AS-REP Roasting cible les comptes dont la pré-authentification Kerberos est désactivée (option 'Do not require Kerberos preauthentication'). Sans pré-authentification, l'attaquant peut demander une réponse AS-REP chiffrée avec le mot de passe de la cible et la cracker hors ligne, sans même avoir de compte valide."
+    },
+    {
+      "id": "cm1_011",
+      "chapter": "CM1",
+      "theme": "Attaques AD",
+      "question": "Que permet une attaque DCSync réussie à l'attaquant ?",
+      "options": [
+        "Modifier les GPO du domaine sans être détecté",
+        "Ajouter des utilisateurs dans les groupes Domain Admins",
+        "Récupérer les hashes de mots de passe de TOUS les utilisateurs du domaine en simulant une réplication DC",
+        "Créer de faux tickets TGT valides pour n'importe quel utilisateur"
+      ],
+      "correct": 2,
+      "explanation": "DCSync exploite le mécanisme de réplication des DC. Un compte avec droits de réplication (GetChanges + GetChangesAll) peut demander une synchronisation et récupérer tous les objets AD, y compris les hashes NTLM de tous les utilisateurs. Outil : Impacket secretsdump. Pré-requis : compte avec droits de réplication (ex: un compte compromis dans DnsAdmins ou délégation inappropriée)."
+    },
+    {
+      "id": "cm1_012",
+      "chapter": "CM1",
+      "theme": "Attaques AD",
+      "question": "Quelle est la différence entre un Silver Ticket et un Golden Ticket ?",
+      "options": [
+        "Silver = forgé avec le hash de krbtgt → accès total au domaine ; Golden = forgé avec le hash d'un service → accès à ce service",
+        "Silver = forgé avec le hash d'un compte de service → accès à ce service ; Golden = forgé avec le hash de krbtgt → accès total au domaine",
+        "Silver et Golden sont identiques, seule la durée de validité diffère",
+        "Silver concerne un seul domaine ; Golden concerne toute la forêt"
+      ],
+      "correct": 1,
+      "explanation": "Silver Ticket : ticket TGS forgé avec le hash du compte de service cible. Donne accès à CE service spécifique pour n'importe quel utilisateur/groupe. Golden Ticket : ticket TGT forgé avec le hash du compte krbtgt. Donne accès TOTAL à tout le domaine, en tant que n'importe quel utilisateur. Le Golden Ticket est la compromission totale du domaine."
+    },
+    {
+      "id": "cm1_013",
+      "chapter": "CM1",
+      "theme": "Durcissement AD",
+      "question": "Pourquoi est-il recommandé de réduire MachineAccountQuota à 0 ?",
+      "options": [
+        "Améliorer les performances de l'AD en limitant le nombre d'objets computer",
+        "Respecter la politique de licences Windows Server",
+        "Éviter qu'un attaquant authentifié puisse ajouter une machine sous son contrôle au domaine pour mener des attaques Kerberos",
+        "Empêcher les utilisateurs de changer le nom de leur ordinateur"
+      ],
+      "correct": 2,
+      "explanation": "Par défaut, tout utilisateur authentifié peut ajouter jusqu'à 10 machines au domaine (MachineAccountQuota=10). Un attaquant peut créer une machine factice, obtenir un compte de service avec SPN, et mener des attaques Kerberoasting ou d'autres attaques depuis cette machine. Réduire à 0 = seuls les admins peuvent joindre des machines au domaine."
+    },
+    {
+      "id": "cm1_014",
+      "chapter": "CM1",
+      "theme": "Durcissement AD",
+      "question": "Pourquoi les gMSA (group Managed Service Accounts) sont-ils recommandés comme remédiation au Kerberoasting ?",
+      "options": [
+        "Les gMSA désactivent automatiquement le protocole Kerberos pour les services concernés",
+        "Les gMSA n'ont pas de SPN et ne peuvent donc pas être ciblés",
+        "Les gMSA ont des mots de passe complexes gérés automatiquement par l'AD (comme les comptes machines), rendant le cracking impossible",
+        "Les gMSA utilisent un chiffrement AES plus robuste pour les tickets TGS"
+      ],
+      "correct": 2,
+      "explanation": "Les gMSA (depuis Windows Server 2012) ont des mots de passe complexes gérés automatiquement par l'AD avec renouvellement régulier — exactement comme les comptes machines. Même si un attaquant obtient le ticket TGS, il ne peut pas le cracker. C'est la recommandation principale contre le Kerberoasting."
+    },
+    {
+      "id": "cm1_015",
+      "chapter": "CM1",
+      "theme": "Architecture AD",
+      "question": "Quelle est la différence entre un groupe de sécurité et un groupe de distribution dans AD ?",
+      "options": [
+        "Groupes de sécurité : pour les permissions sur les ressources (ACL) ; Groupes de distribution : uniquement pour la messagerie",
+        "Groupes de sécurité : uniquement pour les utilisateurs ; Groupes de distribution : pour les ordinateurs aussi",
+        "Groupes de sécurité : créés par les admins ; Groupes de distribution : créés par les utilisateurs",
+        "Groupes de sécurité : visibles sur le réseau ; Groupes de distribution : masqués"
+      ],
+      "correct": 0,
+      "explanation": "Groupes de sécurité : servent à attribuer des permissions sur les ressources (NTFS, partages, imprimantes) — ils peuvent figurer dans les ACL. Groupes de distribution : uniquement pour les listes de diffusion email — ils NE peuvent PAS être utilisés dans les ACL de sécurité."
+    },
+    {
+      "id": "cm1_016",
+      "chapter": "CM1",
+      "theme": "Architecture AD",
+      "question": "Qu'est-ce qu'une GPO (Group Policy Object) dans Active Directory ?",
+      "options": [
+        "Un objet qui définit les permissions d'accès aux ressources partagées",
+        "Un ensemble de règles et paramètres de configuration appliqués automatiquement aux utilisateurs et ordinateurs d'une OU",
+        "Un protocole de sauvegarde automatique des paramètres AD",
+        "Un certificat numérique pour les communications sécurisées dans le domaine"
+      ],
+      "correct": 1,
+      "explanation": "Une GPO est un ensemble de paramètres (sécurité, bureau, logiciels, etc.) qui s'appliquent automatiquement aux utilisateurs et/ou ordinateurs d'une OU. Elles permettent une administration centralisée : imposer des mots de passe forts, désactiver le panneau de configuration, déployer des logiciels, configurer le pare-feu Windows, etc."
+    },
+    {
+      "id": "cm1_017",
+      "chapter": "CM1",
+      "theme": "Architecture AD",
+      "question": "Qu'est-ce qu'une relation d'approbation transitive dans AD ?",
+      "options": [
+        "Une relation qui expire automatiquement après 30 jours",
+        "Si domaine A approuve B et B approuve C, alors A approuve implicitement C",
+        "Une relation qui fonctionne dans les deux sens simultanément (bidirectionnelle)",
+        "Une relation limitée aux domaines d'une même forêt, ne fonctionnant pas entre forêts"
+      ],
+      "correct": 1,
+      "explanation": "La transitivité : si A→B et B→C, alors A→C implicitement. À distinguer de la bidirectionnalité (même relation, les deux sens). Dans une forêt AD, toutes les approbations entre domaines sont transitives et bidirectionnelles par défaut. Entre forêts, les approbations externes ne sont pas transitives."
+    },
+    {
+      "id": "cm1_018",
+      "chapter": "CM1",
+      "theme": "Architecture AD",
+      "question": "Qu'est-ce que le samAccountName dans Active Directory ?",
+      "options": [
+        "L'identifiant unique global (GUID) de l'objet dans tout l'annuaire",
+        "Le nom de connexion Windows de l'utilisateur, au format DOMAINE\\utilisateur",
+        "Le chemin complet (DN) de l'objet dans l'arborescence LDAP",
+        "L'identifiant de sécurité (SID) unique de l'objet"
+      ],
+      "correct": 1,
+      "explanation": "Le samAccountName est le nom de connexion compatible SAM (Security Account Manager), utilisé pour l'authentification Windows au format DOMAINE\\utilisateur (ex: IUTVANNES\\john.smith). À distinguer du UserPrincipalName (UPN, format email : john.smith@iutvannes.bzh) et de l'ObjectSID (identifiant de sécurité unique)."
+    },
+    {
+      "id": "cm1_019",
+      "chapter": "CM1",
+      "theme": "Durcissement AD",
+      "question": "Pourquoi les comptes dormants (non utilisés) représentent-ils un risque de sécurité ?",
+      "options": [
+        "Ils consomment des licences Windows inutilement",
+        "Ils peuvent avoir des mots de passe faibles/par défaut et leur utilisation par un attaquant passe inaperçue",
+        "Ils provoquent des conflits de réplication entre contrôleurs de domaine",
+        "Ils empêchent la mise à jour des GPO"
+      ],
+      "correct": 1,
+      "explanation": "Les comptes dormants représentent deux risques : des mots de passe souvent faibles ou par défaut (jamais changés), et une utilisation qui passe inaperçue puisque personne ne surveille leur activité. Un attaquant peut les exploiter pour se déplacer latéralement sans alerte. Recommandation : désactiver après X jours d'inactivité, auditer régulièrement."
+    },
+    {
+      "id": "cm1_020",
+      "chapter": "CM1",
+      "theme": "Durcissement AD",
+      "question": "Pourquoi les membres non légitimes dans les groupes Domain Admins / Schema Admins sont-ils un risque critique ?",
+      "options": [
+        "Ces groupes consomment plus de ressources CPU sur le DC",
+        "L'exposition de droits étendus à des comptes non nécessaires augmente massivement la surface d'attaque — un seul compte compromis suffit",
+        "Ces groupes ne peuvent avoir qu'un maximum de 10 membres",
+        "Les membres de ces groupes ne peuvent pas être auditées dans les journaux"
+      ],
+      "correct": 1,
+      "explanation": "Le principe du moindre privilège : chaque compte ne doit avoir que les droits strictement nécessaires. Des comptes ordinaires dans Domain Admins signifient que compromettre n'importe lequel donne le contrôle total du domaine. Recommandation : auditer régulièrement les membres des groupes privilégiés, séparer les comptes admin des comptes utilisateurs standards."
+    },
+    {
+      "id": "cm2_001",
+      "chapter": "CM2",
+      "theme": "Menaces réseau",
+      "question": "Qu'est-ce qu'une attaque Man-in-the-Middle (MITM) ?",
+      "options": [
+        "Inonder un serveur de requêtes pour le rendre indisponible",
+        "Se placer entre deux parties communicantes pour intercepter et potentiellement modifier les échanges à leur insu",
+        "Scanner les ports d'un serveur pour détecter les services exposés",
+        "Exploiter une faille SQL dans une application web"
+      ],
+      "correct": 1,
+      "explanation": "Dans une attaque MITM, l'attaquant s'interpose dans la communication : la victime A croit parler à B, et vice versa. L'attaquant peut écouter (sniffing), modifier les données, ou injecter du contenu malveillant. Techniques : ARP spoofing, DNS spoofing, SSL stripping. Protection : chiffrement de bout en bout (TLS), HSTS, vérification des certificats."
+    },
+    {
+      "id": "cm2_002",
+      "chapter": "CM2",
+      "theme": "Protocoles sécurisés",
+      "question": "Lors du handshake TLS, quel est le rôle de la cryptographie asymétrique ?",
+      "options": [
+        "Chiffrer toutes les données de la session HTTP",
+        "Négocier et échanger de manière sécurisée une clé de session symétrique",
+        "Authentifier le client auprès du serveur",
+        "Vérifier l'intégrité de chaque paquet TCP"
+      ],
+      "correct": 1,
+      "explanation": "TLS utilise la crypto asymétrique UNIQUEMENT pour le handshake : authentifier le serveur (certificat) et échanger de façon sécurisée une clé de session symétrique (via échange Diffie-Hellman ou RSA). Ensuite, toute la session est chiffrée avec la clé symétrique, beaucoup plus rapide. C'est le meilleur des deux mondes : sécurité de l'asymétrique, performance du symétrique."
+    },
+    {
+      "id": "cm2_003",
+      "chapter": "CM2",
+      "theme": "Protocoles sécurisés",
+      "question": "Quelle est la différence entre AH et ESP dans IPSec ?",
+      "options": [
+        "AH chiffre et authentifie ; ESP authentifie uniquement",
+        "AH assure l'intégrité/authentification SANS chiffrement ; ESP assure l'intégrité/authentification ET le chiffrement",
+        "AH est pour IPv4 ; ESP est pour IPv6 uniquement",
+        "AH fonctionne en mode tunnel ; ESP fonctionne en mode transport"
+      ],
+      "correct": 1,
+      "explanation": "AH (Authentication Header) : assure l'intégrité et l'authentification — mais PAS la confidentialité (pas de chiffrement des données). On voit le contenu des paquets mais on est sûr qu'ils ne sont pas modifiés. ESP (Encapsulating Security Payload) : assure AUSSI le chiffrement en plus de l'intégrité et de l'authentification. ESP est le plus utilisé car il offre la confidentialité."
+    },
+    {
+      "id": "cm2_004",
+      "chapter": "CM2",
+      "theme": "Protocoles sécurisés",
+      "question": "Quelle est la différence entre mode transport et mode tunnel dans IPSec ?",
+      "options": [
+        "Transport = chiffre l'en-tête IP et le payload ; Tunnel = chiffre uniquement le payload",
+        "Transport = protège le payload (communication hôte-à-hôte) ; Tunnel = encapsule tout le paquet IP (VPN site-à-site)",
+        "Transport est utilisé sur Internet ; Tunnel est utilisé uniquement sur LAN",
+        "Transport utilise AH ; Tunnel utilise ESP"
+      ],
+      "correct": 1,
+      "explanation": "Mode transport : seul le contenu (payload) est protégé, l'en-tête IP original reste visible. Utilisé pour communications bout-en-bout entre deux hôtes. Mode tunnel : tout le paquet IP original est encapsulé dans un nouveau paquet avec un nouvel en-tête. Utilisé pour VPN site-à-site (les passerelles encapsulent/désencapsulent). Mode tunnel est plus courant pour les VPN d'entreprise."
+    },
+    {
+      "id": "cm2_005",
+      "chapter": "CM2",
+      "theme": "Protocoles sécurisés",
+      "question": "Comment SSH assure-t-il une connexion sécurisée ?",
+      "options": [
+        "SSH chiffre uniquement le mot de passe, la session reste en clair",
+        "SSH utilise un certificat SSL/TLS comme HTTPS",
+        "SSH utilise la crypto asymétrique pour l'authentification + échange de clé de session, puis chiffre toute la session avec cette clé symétrique",
+        "SSH est identique à Telnet mais utilise le port 22"
+      ],
+      "correct": 2,
+      "explanation": "SSH : 1) Échange de clés Diffie-Hellman pour établir une clé de session symétrique partagée de façon sécurisée. 2) Authentification du serveur (clé publique hôte) et du client (password ou paire de clés). 3) Toute la session est chiffrée avec la clé symétrique. Contrairement à Telnet qui envoie tout en clair (y compris le mot de passe)."
+    },
+    {
+      "id": "cm2_006",
+      "chapter": "CM2",
+      "theme": "Pare-feu",
+      "question": "Quelle est la principale différence entre un pare-feu stateful et un filtrage de paquets simple (stateless) ?",
+      "options": [
+        "Le stateful est plus rapide car il inspecte moins de données",
+        "Le stateful maintient une table d'état des connexions TCP et peut vérifier la légitimité de chaque paquet ; le stateless traite chaque paquet indépendamment",
+        "Le stateful ne peut filtrer que TCP, pas UDP",
+        "Le stateful est uniquement utilisable en mode inline, pas en mode passif"
+      ],
+      "correct": 1,
+      "explanation": "Filtrage stateless : chaque paquet est examiné indépendamment selon des règles IP/port. Peut être contourné par des paquets forgés. Filtrage stateful : maintient une table d'état des connexions TCP. Vérifie que chaque paquet appartient à une connexion établie légitime et détecte les anomalies (ex: TCP RST en dehors d'une connexion). Bien plus robuste contre les attaques de reconstitution."
+    },
+    {
+      "id": "cm2_007",
+      "chapter": "CM2",
+      "theme": "IDS/IPS",
+      "question": "Quelle est la différence fondamentale entre IDS et IPS ?",
+      "options": [
+        "IDS détecte les intrusions réseau ; IPS détecte les intrusions sur les hôtes",
+        "IDS surveille et alerte passivement sans bloquer ; IPS est en ligne et bloque activement le trafic malveillant",
+        "IDS fonctionne par signature ; IPS fonctionne par analyse comportementale",
+        "IDS est hardware ; IPS est software"
+      ],
+      "correct": 1,
+      "explanation": "IDS (Intrusion Detection System) : mode passif, surveille une copie du trafic, détecte et alerte, ne peut pas bloquer. IPS (Intrusion Prevention System) : mode inline (positionné dans le flux), détecte ET bloque en temps réel. L'IPS peut perturber le réseau si mal configuré (faux positifs bloquants). Souvent associé à iptables/NFQ (ex: Snort en mode IPS avec NFQUEUE)."
+    },
+    {
+      "id": "cm2_008",
+      "chapter": "CM2",
+      "theme": "IDS/IPS",
+      "question": "Quel est l'avantage principal de la détection par anomalie sur la détection par signature ?",
+      "options": [
+        "Elle génère moins de faux positifs que la détection par signature",
+        "Elle peut détecter des attaques inconnues (zero-day) que les signatures ne couvrent pas encore",
+        "Elle est plus rapide car elle n'a pas besoin de base de données de signatures",
+        "Elle consomme moins de ressources processeur"
+      ],
+      "correct": 1,
+      "explanation": "Détection par signature : ne détecte que les attaques connues avec une signature existante. Rapide, peu de faux positifs, mais aveugle aux zero-day. Détection par anomalie : établit un profil 'normal' et alerte sur les déviations → peut détecter des attaques inconnues. Inconvénient : plus de faux positifs (difficile de définir ce qui est 'normal'). Les NGFW et SIEM utilisent les deux en combinaison."
+    },
+    {
+      "id": "cm2_009",
+      "chapter": "CM2",
+      "theme": "IDS/IPS",
+      "question": "Quelle est la différence entre NIDS et HIDS ?",
+      "options": [
+        "NIDS = surveille le trafic réseau en analysant les paquets ; HIDS = surveille les activités sur un hôte spécifique (logs, fichiers, processus)",
+        "NIDS = détection par signature uniquement ; HIDS = détection par anomalie uniquement",
+        "NIDS = solution logicielle ; HIDS = équipement réseau dédié",
+        "NIDS = pour les réseaux internes ; HIDS = pour les réseaux exposés à Internet"
+      ],
+      "correct": 0,
+      "explanation": "NIDS (Network-based IDS) : analyse le trafic réseau en temps réel depuis un point de capture (ex: Snort, Suricata). Voit les attaques réseau. HIDS (Host-based IDS) : installé sur l'hôte, surveille les fichiers système, logs, processus, connexions locales (ex: OSSEC). Complémentaires : le NIDS voit ce qui entre sur le réseau, le HIDS voit ce qui se passe sur la machine."
+    },
+    {
+      "id": "cm2_010",
+      "chapter": "CM2",
+      "theme": "Supervision réseau",
+      "question": "Quel protocole de supervision réseau permet de collecter automatiquement des informations sur les équipements ?",
+      "options": [
+        "LDAP",
+        "SNMP (Simple Network Management Protocol)",
+        "ICMP",
+        "Syslog"
+      ],
+      "correct": 1,
+      "explanation": "SNMP (Simple Network Management Protocol) : les équipements réseau (routeurs, switchs, serveurs) disposent d'un agent SNMP qui remonte des informations au serveur de supervision (MIB - Management Information Base). Permet de surveiller l'état, les performances, et recevoir des alertes (SNMP Traps). Outils : Nagios, Centreon (basé sur Nagios), Zabbix."
+    },
+    {
+      "id": "cm2_011",
+      "chapter": "CM2",
+      "theme": "Supervision réseau",
+      "question": "Quelle est une limite importante de la supervision réseau à retenir ?",
+      "options": [
+        "La supervision ne fonctionne qu'en IPv4",
+        "Elle ne remplace pas les autres mécanismes de sécurité comme les pare-feux ou IDS/IPS",
+        "Elle nécessite un agent installé sur chaque équipement sans exception",
+        "Elle ne peut surveiller que les équipements Cisco"
+      ],
+      "correct": 1,
+      "explanation": "La supervision réseau a plusieurs limites : génère beaucoup d'alertes à analyser, nécessite configuration et maintenance régulières, consomme des ressources réseau/système — et surtout, elle ne REMPLACE PAS les autres mécanismes de sécurité (pare-feu, IDS/IPS). C'est un outil de visibilité complémentaire, pas une protection en soi."
+    },
+    {
+      "id": "cm2_012",
+      "chapter": "CM2",
+      "theme": "Menaces réseau",
+      "question": "Comment se distingue une attaque DDoS d'une attaque DoS classique ?",
+      "options": [
+        "DDoS cible les serveurs web uniquement ; DoS peut cibler n'importe quel service",
+        "DDoS utilise des milliers de sources distribuées (botnet) pour submerger la cible ; DoS vient d'une seule source",
+        "DDoS chiffre les données de la cible ; DoS sature simplement la bande passante",
+        "DoS est détectable ; DDoS est indétectable"
+      ],
+      "correct": 1,
+      "explanation": "DoS (Denial of Service) : attaque depuis une seule machine — facile à bloquer en blacklistant l'IP source. DDoS (Distributed DoS) : des milliers de machines compromises (botnet) attaquent simultanément — impossible de bloquer toutes les sources. Le trafic légitime est noyé dans le flood. Mitigations : CDN, scrubbing centers, rate limiting, BGP blackholing."
+    },
+    {
+      "id": "cm3_001",
+      "chapter": "CM3",
+      "theme": "Continuité d'activité",
+      "question": "Quelle est la différence fondamentale entre PCA et PRA ?",
+      "options": [
+        "PCA concerne uniquement les données ; PRA concerne l'infrastructure",
+        "PCA vise à maintenir l'activité EN CONTINU pendant un incident ; PRA vise à REPRENDRE l'activité après une interruption",
+        "PCA est requis par la loi ; PRA est optionnel",
+        "PCA s'applique aux grandes entreprises ; PRA aux PME"
+      ],
+      "correct": 1,
+      "explanation": "PCA (Plan de Continuité d'Activité) : mesures préventives pour maintenir les services critiques en fonctionnement même pendant une crise (objectif : zéro interruption ou interruption minimale). PRA (Plan de Reprise d'Activité) : procédures pour REDÉMARRER l'activité après une interruption acceptée (objectif : reprendre le plus vite possible avec une perte de données maîtrisée)."
+    },
+    {
+      "id": "cm3_002",
+      "chapter": "CM3",
+      "theme": "Continuité d'activité",
+      "question": "Pour un e-commerce : RTO = 4h, RPO = 2h. Qu'est-ce que cela signifie concrètement ?",
+      "options": [
+        "Les données sont sauvegardées toutes les 4h et le système redémarre en 2h maximum",
+        "Le système doit être opérationnel en 4h maximum après panne, et on accepte de perdre au maximum 2h de données",
+        "La sauvegarde prend 2h et la restauration prend 4h",
+        "Le système peut être arrêté 4h par semaine pour maintenance, avec un backup toutes les 2h"
+      ],
+      "correct": 1,
+      "explanation": "RTO (Recovery Time Objective) = durée max d'interruption acceptable = 4h ici → le système doit être opérationnel en moins de 4h. RPO (Recovery Point Objective) = perte de données maximale acceptable = 2h ici → les sauvegardes doivent être faites au moins toutes les 2h pour ne perdre au pire que 2h de commandes. Moyen mnémotechnique : RTO = temps de récupération, RPO = point de récupération (dans le temps)."
+    },
+    {
+      "id": "cm3_003",
+      "chapter": "CM3",
+      "theme": "Types de sauvegarde",
+      "question": "Quelle est la différence entre sauvegarde incrémentielle et sauvegarde différentielle ?",
+      "options": [
+        "Incrémentielle = tout depuis la dernière complète ; Différentielle = uniquement ce qui a changé depuis le dernier backup",
+        "Incrémentielle = uniquement les changements depuis le DERNIER backup (quelle qu'il soit) ; Différentielle = tout depuis la dernière sauvegarde COMPLÈTE",
+        "Incrémentielle est plus volumineuse mais plus rapide à restaurer ; Différentielle est plus petite et plus lente",
+        "Incrémentielle ne peut être faite que sur bande magnétique ; Différentielle sur tout support"
+      ],
+      "correct": 1,
+      "explanation": "Incrémentielle : sauvegarde UNIQUEMENT ce qui a changé depuis la DERNIÈRE sauvegarde (qu'elle soit complète ou incrémentielle). Petite taille, rapide à créer. Restauration lente : besoin de la complète + TOUTES les incrémentales. Différentielle : sauvegarde tout depuis la dernière sauvegarde COMPLÈTE. Taille croissante avec le temps. Restauration rapide : complète + dernière différentielle seulement."
+    },
+    {
+      "id": "cm3_004",
+      "chapter": "CM3",
+      "theme": "Types de sauvegarde",
+      "question": "Que signifie la règle 3-2-1 de sauvegarde ?",
+      "options": [
+        "3 sauvegardes par jour, 2 serveurs de sauvegarde, 1 administrateur dédié",
+        "3 copies des données, sur 2 types de supports différents, dont 1 copie hors site",
+        "3 jours de rétention, 2 types de sauvegarde, 1 test de restauration par mois",
+        "3 niveaux (complète/incrémentielle/différentielle), 2 emplacements, 1 responsable"
+      ],
+      "correct": 1,
+      "explanation": "Règle 3-2-1 : 3 copies des données (l'original + 2 sauvegardes), sur 2 types de supports DIFFÉRENTS (ex: disque dur local + cloud ou bande), dont 1 copie stockée HORS SITE (protection contre sinistre physique : incendie, inondation, vol). Protection contre la plupart des scénarios. Complément moderne : règle 3-2-1-1 (+ 1 copie immuable offline)."
+    },
+    {
+      "id": "cm3_005",
+      "chapter": "CM3",
+      "theme": "Types de sauvegarde",
+      "question": "Qu'est-ce qu'une sauvegarde immuable (WORM) et pourquoi est-elle critique face aux ransomwares ?",
+      "options": [
+        "Une sauvegarde chiffrée accessible uniquement par l'administrateur",
+        "Une sauvegarde qui ne peut pas être modifiée ni supprimée pendant une période définie, résistante même si l'attaquant a des droits admin",
+        "Une sauvegarde automatique réalisée sans intervention humaine",
+        "Une sauvegarde stockée dans un datacenter externe certifié ISO 27001"
+      ],
+      "correct": 1,
+      "explanation": "WORM (Write Once Read Many) : les données écrites ne peuvent pas être modifiées ni supprimées pendant une période définie. Crucial car les ransomwares ciblent AUSSI les sauvegardes pour les chiffrer/supprimer. Même un attaquant avec des droits admin ne peut pas supprimer une sauvegarde WORM. Disponible sur baies de stockage modernes (NetApp, Pure Storage) et services cloud (S3 Object Lock, Azure Immutable Storage)."
+    },
+    {
+      "id": "cm3_006",
+      "chapter": "CM3",
+      "theme": "Types de sauvegarde",
+      "question": "Pourquoi la synchronisation (Dropbox, OneDrive) ne remplace-t-elle PAS une vraie sauvegarde ?",
+      "options": [
+        "La synchronisation est trop lente pour les grandes quantités de données",
+        "Si un fichier est chiffré par ransomware ou supprimé, la synchronisation propage immédiatement la version corrompue sur toutes les copies",
+        "La synchronisation ne fonctionne qu'en Wi-Fi",
+        "La synchronisation ne conserve pas plusieurs versions d'un fichier"
+      ],
+      "correct": 1,
+      "explanation": "La synchronisation maintient des copies IDENTIQUES en temps réel. Si un ransomware chiffre vos fichiers, la version chiffrée est immédiatement synchronisée, écrasant les copies 'saines'. Une sauvegarde avec versioning conserve des snapshots à des points dans le temps → restauration possible d'une version antérieure non chiffrée. La synchronisation est de la réplication, pas de la sauvegarde."
+    },
+    {
+      "id": "cm3_007",
+      "chapter": "CM3",
+      "theme": "Sécurisation des échanges",
+      "question": "Parmi les 4 principes de sécurisation des échanges, lequel garantit qu'un message n'a pas été altéré en transit ?",
+      "options": [
+        "Confidentialité",
+        "Authenticité",
+        "Intégrité",
+        "Traçabilité"
+      ],
+      "correct": 2,
+      "explanation": "Les 4 principes : Confidentialité = seuls les destinataires autorisés lisent (chiffrement). Intégrité = le message n'a pas été modifié (hash/MAC/signature). Authenticité = le message vient bien de l'expéditeur prétendu (signature numérique, certificat). Traçabilité = non-répudiation, on peut prouver qui a envoyé quoi et quand (journalisation + signature). Intégrité ≠ authenticité : un message peut être intègre mais provenir d'un faux expéditeur."
+    },
+    {
+      "id": "cm4_001",
+      "chapter": "CM4",
+      "theme": "Bonnes pratiques",
+      "question": "Quels sont les principaux risques du partage d'identifiants entre collaborateurs ?",
+      "options": [
+        "Risque d'oublier le mot de passe partagé et de perdre l'accès au compte",
+        "Impossibilité de tracer les actions individuelles, responsabilité diluée, accès persistant même après départ",
+        "Risque de ralentissement si trop d'utilisateurs connectés simultanément",
+        "Non-conformité aux règles de performance informatique de l'entreprise"
+      ],
+      "correct": 1,
+      "explanation": "Le partage d'identifiants : empêche la traçabilité (qui a fait quoi ?), dilue la responsabilité (tous peuvent nier), et crée des accès fantômes (un ex-employé connaît toujours le mot de passe). C'est une violation fondamentale du principe d'imputabilité. Solution : comptes nominatifs, gestion des accès IAM, désactivation immédiate lors des départs."
+    },
+    {
+      "id": "cm4_002",
+      "chapter": "CM4",
+      "theme": "Ingénierie sociale",
+      "question": "Pourquoi une clé USB trouvée dans un parking peut-elle représenter une cybermenace ?",
+      "options": [
+        "Elle peut ralentir le PC ou être incompatible avec le système",
+        "Elle peut contenir des malwares qui s'exécutent automatiquement à la connexion (technique de baiting/appâtage)",
+        "Elle peut contenir des données personnelles d'un tiers",
+        "Elle peut surchauffer le port USB"
+      ],
+      "correct": 1,
+      "explanation": "L'attaque par 'baiting' : déposer des clés USB piégées dans des endroits stratégiques (parking, couloirs). La curiosité pousse les employés à les brancher. À la connexion : exécution automatique de malwares, keylogger, reverse shell, HID attack (la clé se fait passer pour un clavier et tape des commandes). Règle : ne JAMAIS brancher une clé USB de source inconnue."
+    },
+    {
+      "id": "cm4_003",
+      "chapter": "CM4",
+      "theme": "Bonnes pratiques",
+      "question": "Quel est le principal risque de sécurité lié au BYOD (Bring Your Own Device) en entreprise ?",
+      "options": [
+        "Les appareils personnels consomment plus d'électricité",
+        "Les employés utilisent des applications non autorisées sur des appareils non sécurisés, créant des vecteurs d'attaque vers le SI de l'entreprise",
+        "Les appareils personnels tombent plus souvent en panne",
+        "Les employés passent trop de temps sur leurs appareils personnels"
+      ],
+      "correct": 1,
+      "explanation": "Le BYOD expose le SI : appareils sans antivirus/MAJ (vecteur de malware), connexion à des réseaux WiFi publics non sécurisés, applications personnelles non vérifiées, perte/vol de l'appareil avec données d'entreprise, mélange vie pro/perso. Gouvernance BYOD : charte d'utilisation, MDM (Mobile Device Management), conteneurisation des données pro, politique de wipe à distance."
+    },
+    {
+      "id": "cm4_004",
+      "chapter": "CM4",
+      "theme": "Sensibilisation",
+      "question": "Pourquoi réaliser une simulation de phishing AVANT une campagne de sensibilisation ?",
+      "options": [
+        "Pour identifier et sanctionner les employés les moins vigilants",
+        "Pour établir un état des lieux initial (baseline) et mesurer l'efficacité de la formation après coup",
+        "Pour satisfaire aux exigences légales de la RGPD",
+        "Pour tester les filtres anti-spam du serveur de messagerie"
+      ],
+      "correct": 1,
+      "explanation": "La simulation avant/après (avec GoPhish par exemple) permet une approche evidence-based : mesurer le % d'employés qui 'mordent à l'hameçon' initialement, puis remesurer après formation. L'objectif est de quantifier l'amélioration du niveau de sensibilisation, pas de sanctionner. Les résultats guident aussi le contenu de la formation (quelles erreurs sont les plus fréquentes ?)."
+    },
+    {
+      "id": "cm4_005",
+      "chapter": "CM4",
+      "theme": "Sécurité physique",
+      "question": "Dans le contexte de la sécurité physique, qu'est-ce que le 'tailgating' (ou piggybacking) ?",
+      "options": [
+        "Intercepter des communications WiFi dans les locaux de l'entreprise",
+        "Suivre discrètement un employé autorisé pour franchir une porte sécurisée sans badge",
+        "Utiliser un badge cloné pour accéder à des zones restreintes",
+        "Lire par-dessus l'épaule d'un employé pour voir son écran ou saisie (shoulder surfing)"
+      ],
+      "correct": 1,
+      "explanation": "Le tailgating : profiter de l'ouverture d'une porte sécurisée par un employé légitime pour s'y faufiler juste derrière. C'est la technique d'intrusion physique la plus simple, qui contourne les badges et contrôles d'accès électroniques. Contre-mesures : sas de sécurité (man-trap), formation des employés à ne pas laisser passer des inconnus, politique de port du badge visible."
+    },
+    {
+      "id": "cm4_006",
+      "chapter": "CM4",
+      "theme": "Bonnes pratiques",
+      "question": "Lors de l'exposition d'un serveur web sur Internet, quelle pratique représente un risque majeur ?",
+      "options": [
+        "Utiliser HTTPS au lieu de HTTP",
+        "Laisser des ports/services inutiles ouverts et des identifiants par défaut non changés (mauvaise configuration)",
+        "Configurer un pare-feu applicatif (WAF)",
+        "Mettre à jour régulièrement les composants du serveur"
+      ],
+      "correct": 1,
+      "explanation": "Un serveur mal configuré expose : services inutiles non désactivés (surface d'attaque élargie), ports ouverts non nécessaires, répertoires web avec listing activé, identifiants par défaut non changés (admin/admin, root/root), versions logicielles non patchées avec CVE connues. Principe : moindre exposition = désactiver TOUT ce qui n'est pas strictement nécessaire. Le scanner Shodan indexe ces serveurs exposés."
+    }
+  ]
+}

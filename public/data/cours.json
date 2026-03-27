@@ -1,0 +1,118 @@
+[
+  {
+    "id": "CM1",
+    "title": "Sécurité Active Directory",
+    "color": "#7c3aed",
+    "sections": [
+      {
+        "title": "Notions de base sur Active Directory",
+        "content": "**Active Directory (AD)** est un annuaire (base de données centralisée) qui stocke et gère les informations sur les objets du réseau Windows (utilisateurs, ordinateurs, groupes, etc.).\n\n**Contrôleur de domaine (DC)** : serveur qui héberge l'AD. Contient :\n- **NTDS.dit** : base de données AD (objets + hashes des mots de passe)\n- **SYSVOL** : scripts de connexion et GPO, répliqués via DFSR\n\n**Hiérarchie :** OU ⊂ Domaine ⊂ Arbre ⊂ Forêt\n\n**Principales classes d'objets :** User, Computer, Group, OU, Printer\n\n**Attributs importants :** samAccountName (login Windows), ObjectSID (identifiant de sécurité unique), UserPrincipalName (format email), Distinguished Name (chemin LDAP complet)"
+      },
+      {
+        "title": "Groupes Active Directory",
+        "content": "**Types :** Sécurité (pour les permissions/ACL) vs Distribution (uniquement pour la messagerie)\n\n**Étendues :**\n- **Domaine local** : utilisable uniquement dans le domaine local\n- **Globale** : peut contenir des membres du domaine local, utilisable partout dans la forêt\n- **Universelle** : membres de n'importe quel domaine de la forêt, utilisable partout\n\n**GPO (Group Policy Object)** : ensemble de paramètres (sécurité, bureau, logiciels) appliqués automatiquement aux utilisateurs/ordinateurs d'une OU. Stockés dans SYSVOL."
+      },
+      {
+        "title": "Relations d'approbation",
+        "content": "Relation de **confiance** établie entre domaines ou forêts pour faciliter l'accès aux ressources.\n\n**Propriétés :**\n- **Direction** : unidirectionnelle (A approuve B → B accède aux ressources A, pas l'inverse) ou bidirectionnelle\n- **Transitivité** : si A→B et B→C, alors A→C implicitement (entre domaines d'une même forêt)\n\n**Types :**\n- Prédéfinies : créées automatiquement dans une forêt\n- Externes : entre forêts différentes (non transitives par défaut)"
+      },
+      {
+        "title": "Protocoles d'authentification",
+        "content": "**LDAP (port 389)** : gestion de l'annuaire. Chaque objet a un GUID (identifiant unique global) et un DN (Distinguished Name = chemin complet, ex: `CN=John Smith,CN=Users,DC=iutvannes,DC=bzh`).\n\n**DNS** : indispensable au fonctionnement d'AD — résolution de noms, localisation des DC et KDC via des enregistrements spécifiques.\n\n**NTLM** : protocole challenge/response. Le serveur envoie un challenge, le client répond en le chiffrant avec son **hash NT**. ⚠ Vulnérable à Pass-the-Hash, NTLM Relay.\n\n**Kerberos (port 88)** : protocole principal d'authentification dans un domaine AD. Le KDC (sur le DC) émet :\n- **TGT** (Ticket Granting Ticket) : preuve d'authentification initiale\n- **TGS** (Ticket de service) : permet d'accéder à une ressource spécifique via son SPN"
+      },
+      {
+        "title": "Attaques sur Active Directory",
+        "content": "**Pass-the-Hash** : s'authentifier avec le hash NT directement (sans le mot de passe en clair). Fonctionne car NTLM accepte le hash.\n\n**Kerberoasting** : depuis n'importe quel compte du domaine, demander des tickets TGS pour les comptes avec SPN, puis cracker hors ligne. Cible : comptes utilisateurs avec SPN (pas les comptes machines — mdp 128 chars aléatoires).\n\n**AS-REP Roasting** : cibler les comptes avec pré-authentification Kerberos désactivée — obtenir une réponse AS-REP chiffrée avec le mdp de la cible et la cracker hors ligne.\n\n**DCSync** : simuler une réplication DC pour récupérer tous les hashes du domaine. Nécessite des droits de réplication (GetChanges + GetChangesAll).\n\n**Silver Ticket** : TGS forgé avec le hash d'un compte de service → accès à ce service.\n**Golden Ticket** : TGT forgé avec le hash de krbtgt → accès total au domaine."
+      },
+      {
+        "title": "Durcissement d'Active Directory",
+        "content": "**Gestion des comptes :**\n- Tous les mots de passe doivent expirer (politique de renouvellement)\n- Désactiver/supprimer les comptes dormants et les auditer régulièrement\n- Désactiver le compte Invité s'il n'est pas requis\n\n**Contrôle des objets :**\n- Réduire **MachineAccountQuota à 0** (empêcher les utilisateurs standards d'ajouter des machines)\n\n**Gestion des groupes :**\n- Principe du moindre privilège pour les groupes privilégiés (Domain Admins, Schema Admins)\n- Limiter les membres du groupe DnsAdmins (risque d'escalade vers Admin DC)\n\n**Comptes de service :**\n- Utiliser des **gMSA** (group Managed Service Accounts) : mdp complexes gérés automatiquement par l'AD → résistants au Kerberoasting\n\n**Surveillance :**\n- Activer l'audit sur les DC\n- Surveiller les changements critiques (ajouts dans groupes sensibles, réinitialisations de mdp)\n- Utiliser des outils comme BloodHound/PingCastle pour auditer l'AD\n\n**Référence :** ANSSI Points de contrôle Active Directory (2024)"
+      }
+    ]
+  },
+  {
+    "id": "CM2",
+    "title": "Sécurité des réseaux",
+    "color": "#0891b2",
+    "sections": [
+      {
+        "title": "Principales menaces réseau",
+        "content": "**Sniffing** : interception passive du trafic réseau pour capturer des données (mots de passe, emails). Protection : chiffrement.\n\n**Spoofing** : usurpation d'identité (IP spoofing, ARP spoofing, DNS spoofing). Souvent utilisé pour les attaques MITM.\n\n**Man-in-the-Middle (MITM)** : l'attaquant s'interpose entre deux parties pour intercepter/modifier les échanges. Protection : TLS + vérification des certificats.\n\n**DDoS** : flood depuis des milliers de sources (botnet) pour rendre un service indisponible. Plus difficile à contrer qu'un DoS (source unique).\n\n**Ransomware** : chiffre les données et demande une rançon. Cible aussi les sauvegardes → importance des sauvegardes immuables hors ligne."
+      },
+      {
+        "title": "Protocoles de sécurité réseau",
+        "content": "**TLS** : sécurise les communications (HTTPS = HTTP + TLS, port 443).\n- Handshake : crypto asymétrique pour échanger une clé de session symétrique\n- Session : chiffrée avec la clé symétrique (performance)\n- Authentification via certificat CA (autorité de certification)\n\n**IPSec** : sécurise les communications IP.\n- AH (Authentication Header) : intégrité + authentification, **sans** chiffrement\n- ESP (Encapsulating Security Payload) : intégrité + authentification + **chiffrement**\n- Mode transport : protège le payload (hôte-à-hôte)\n- Mode tunnel : encapsule tout le paquet (VPN site-à-site)\n\n**SSH (port 22)** : accès distant sécurisé.\n- Échange de clés Diffie-Hellman → clé de session symétrique\n- Authentification : mot de passe ou paire de clés\n- Chiffrement symétrique de toute la session"
+      },
+      {
+        "title": "Pare-feu",
+        "content": "**Types de pare-feu :**\n- Filtrage de paquets (stateless) : règles IP/port, chaque paquet indépendant\n- Stateful : table d'état des connexions TCP, détecte les anomalies de séquence\n- Proxy/applicatif : inspecte le contenu applicatif (couche 7)\n- WAF (Web Application Firewall) : spécialisé HTTP/HTTPS, protège contre SQLi, XSS\n- NGFW (Next-Gen) : DPI, prévention d'intrusion, filtrage applicatif\n\n**Méthodes de filtrage :** IP source/destination, port, protocole, contenu, comportement\n\n**Limites :** ne protège pas contre les menaces internes, difficultés avec le trafic chiffré, ne remplace pas les IDS/IPS"
+      },
+      {
+        "title": "IDS / IPS",
+        "content": "**IDS** (Intrusion Detection System) : mode passif, alerte uniquement, ne bloque pas.\n**IPS** (Intrusion Prevention System) : mode inline, bloque activement.\n\n**Déploiement :**\n- NIDS/NIPS : surveille le trafic réseau (ex: Snort, Suricata)\n- HIDS/HIPS : installé sur l'hôte, surveille fichiers/logs/processus (ex: OSSEC)\n\n**Modes de détection :**\n- Par signature : compare au dictionnaire d'attaques connues (+: peu de faux positifs, -: aveugle aux zero-day)\n- Par anomalie : détecte les déviations par rapport au comportement normal (+: détecte zero-day, -: faux positifs)\n\n**Snort3 en mode IPS :** intégré à iptables via NFQUEUE (`-Q` flag)"
+      },
+      {
+        "title": "Supervision réseau",
+        "content": "**Outils de base :** ping (disponibilité), traceroute (chemin réseau), Wireshark (analyse paquets)\n\n**SNMP** (Simple Network Management Protocol) : protocole de supervision automatique. Les équipements ont un agent SNMP qui remonte les infos au serveur de supervision.\n\n**Outils de supervision dédiés :**\n- **Nagios** : surveillance serveurs/services réseau\n- **Centreon** : basé sur Nagios, interface graphique avancée\n- **Zabbix** : plateforme complète avec visualisation et alertes\n\n**Limites :** génère beaucoup d'alertes, nécessite maintenance, **ne remplace pas pare-feux et IDS/IPS**"
+      }
+    ]
+  },
+  {
+    "id": "CM3",
+    "title": "Sauvegardes et continuité d'activité",
+    "color": "#059669",
+    "sections": [
+      {
+        "title": "Pourquoi l'activité peut s'interrompre",
+        "content": "Principales causes :\n- **Cyberattaques** : ransomware, DDoS, destruction de données\n- **Incidents techniques** : panne matérielle, erreur humaine\n- **Sinistres** : incendie, inondation, coupure électrique\n- **Défaillances fournisseurs** : panne cloud, rupture de chaîne logistique\n\n→ Nécessité de **planifier** la continuité et la reprise d'activité."
+      },
+      {
+        "title": "PCA et PRA",
+        "content": "**PCA (Plan de Continuité d'Activité)** : mesures préventives pour maintenir les services critiques en fonctionnement pendant une crise. Objectif : **zéro interruption** (ou minimale).\n\n**PRA (Plan de Reprise d'Activité)** : procédures pour redémarrer l'activité après une interruption acceptée. Objectif : **reprendre le plus vite possible** avec une perte de données maîtrisée.\n\n**Mise en place :**\n1. Analyse d'impact (BIA)\n2. Évaluation des risques\n3. Définition de la stratégie\n4. Rédaction du plan\n5. Tests réguliers\n6. Maintenance et mise à jour\n\n**RTO** (Recovery Time Objective) : durée maximale d'interruption acceptable.\n**RPO** (Recovery Point Objective) : perte de données maximale acceptable → détermine la fréquence des sauvegardes."
+      },
+      {
+        "title": "Types de sauvegardes",
+        "content": "| Type | Ce qui est sauvegardé | Vitesse création | Vitesse restauration | Volume |\n|------|----------------------|-----------------|---------------------|--------|\n| **Complète** | Tout | Lente | Rapide (1 seule) | Grand |\n| **Incrémentielle** | Changements depuis dernier backup | Rapide | Lente (complète + toutes incré.) | Petit |\n| **Différentielle** | Tout depuis dernière complète | Moyenne (croissante) | Moyenne (complète + 1 diff) | Moyen |\n\n**Sauvegarde vs Synchronisation :** la synchro (Dropbox, OneDrive) propage immédiatement les corruptions → ne remplace PAS une vraie sauvegarde avec versioning.\n\n**Sauvegarde immuable (WORM)** : Write Once Read Many — ne peut pas être modifiée/supprimée pendant une période définie. Critique contre les ransomwares."
+      },
+      {
+        "title": "Stratégie de sauvegarde : règle 3-2-1",
+        "content": "**Règle 3-2-1 :**\n- **3** copies des données (original + 2 sauvegardes)\n- **2** types de supports différents (ex: HDD local + cloud ou bande)\n- **1** copie hors site (protection contre sinistre physique)\n\n**Supports :** NAS (réseau), SSD/HDD externe, bande magnétique, cloud (AWS S3, Azure Blob)\n\n**Bonne pratique moderne :** 3-2-1-1 (+ 1 copie immuable offline/air-gapped)"
+      },
+      {
+        "title": "Sécurisation des échanges de données",
+        "content": "**4 principes fondamentaux :**\n\n1. **Confidentialité** : seuls les destinataires autorisés peuvent lire les données (chiffrement : AES, RSA, TLS)\n\n2. **Intégrité** : garantir que les données n'ont pas été modifiées en transit (hash : SHA-256, HMAC, signature numérique)\n\n3. **Authenticité** : confirmer que les données proviennent bien de l'expéditeur prétendu (signature numérique, certificats PKI)\n\n4. **Traçabilité** (non-répudiation) : prouver qui a envoyé quoi et quand — l'expéditeur ne peut pas nier (journalisation + signature numérique)"
+      }
+    ]
+  },
+  {
+    "id": "CM4",
+    "title": "Sensibilisation aux bonnes pratiques",
+    "color": "#d97706",
+    "sections": [
+      {
+        "title": "Scénario 1 : Partage d'identifiants",
+        "content": "**Situation :** Un employé partage ses identifiants avec des collègues pour simplifier l'accès à des ressources.\n\n**Failles :**\n- Impossible de tracer les actions individuelles (qui a fait quoi ?)\n- Responsabilité diluée en cas d'incident\n- Accès persistant même après le départ d'un employé\n- Violation du principe d'imputabilité\n\n**Recommandations :**\n- Chaque utilisateur doit avoir ses propres credentials\n- Gestion des accès IAM (Identity and Access Management)\n- Désactivation immédiate des comptes lors des départs\n- Utiliser un gestionnaire de mots de passe d'entreprise si nécessaire"
+      },
+      {
+        "title": "Scénario 2 : Clé USB inconnue",
+        "content": "**Situation :** Un employé trouve une clé USB dans le parking et la branche sur son PC professionnel.\n\n**Failles :**\n- Technique de **baiting** (appâtage) — ingénierie sociale\n- Exécution automatique de malwares à la connexion\n- Installation de keylogger, reverse shell, HID attack (émulation clavier)\n- Vecteur d'entrée dans le SI\n\n**Recommandations :**\n- Ne JAMAIS brancher une clé USB de source inconnue\n- Désactiver l'autorun sur les systèmes\n- Bloquer les ports USB non autorisés (DLP)\n- Former les employés à signaler les objets suspects"
+      },
+      {
+        "title": "Scénario 3 : BYOD (Bring Your Own Device)",
+        "content": "**Situation :** Un employé utilise son ordinateur personnel pour travailler à distance et accéder aux ressources de l'entreprise.\n\n**Failles :**\n- Appareil sans antivirus/mises à jour → vecteur de malware\n- Connexion à des réseaux WiFi publics non sécurisés\n- Applications personnelles non vérifiées\n- Perte/vol de l'appareil avec données d'entreprise\n- Mélange données pro/perso → fuite de données\n\n**Recommandations :**\n- Politique BYOD formalisée (charte d'utilisation)\n- MDM (Mobile Device Management) pour contrôler les appareils\n- Conteneurisation des données professionnelles\n- Politique de wipe à distance en cas de perte/vol\n- VPN obligatoire pour l'accès aux ressources internes"
+      },
+      {
+        "title": "Scénario 4 : Mauvaise configuration serveur",
+        "content": "**Situation :** Un serveur web est mis en ligne avec une configuration par défaut, sans audit de sécurité préalable.\n\n**Failles :**\n- Ports et services inutiles ouverts (surface d'attaque élargie)\n- Identifiants par défaut non changés (admin/admin, root/root)\n- Répertoires web avec listing activé (exposition de fichiers)\n- Versions logicielles non patchées avec CVE connues\n- Indexation par Shodan (scanner de services exposés sur Internet)\n\n**Recommandations :**\n- Désactiver tout ce qui n'est pas strictement nécessaire (principe de moindre exposition)\n- Changer TOUS les identifiants par défaut\n- Auditer les ports exposés (nmap)\n- Mettre en place un WAF\n- Patching régulier et suivi des CVE"
+      },
+      {
+        "title": "Scénario 5 : Intrusion physique",
+        "content": "**Situation :** Un individu non autorisé accède aux locaux de l'entreprise en suivant un employé (tailgating) pour atteindre la salle serveur.\n\n**Failles :**\n- Tailgating/Piggybacking : entrer derrière un employé légitime sans badge\n- Contourne tous les contrôles d'accès électroniques\n- Accès physique = compromission totale possible (installation matériel espion, vol, sabotage)\n\n**Recommandations :**\n- Sas de sécurité (man-trap) : une porte se ferme avant que l'autre s'ouvre\n- Former les employés à ne JAMAIS laisser passer des inconnus\n- Port du badge visible obligatoire\n- Caméras de surveillance + contrôle des accès avec logs\n- Politique de visitor management"
+      },
+      {
+        "title": "Mettre en place un projet de sensibilisation",
+        "content": "**Étapes clés :**\n\n1. **Soutien de la direction** : légitimité du projet, montrer l'exemple\n2. **Sensibiliser les managers** en premier (relais dans les équipes)\n3. **Simulation phishing AVANT** : établir un baseline (% d'employés qui 'mordent')\n4. **Formation par service** : contexte métier, exemples de vie privée pour l'engagement\n5. **Simulation phishing APRÈS** : mesurer l'amélioration\n\n**Outil : GoPhish** — plateforme open-source pour créer et analyser des campagnes de phishing simulé.\n\n**Important :** L'objectif est de FORMER, pas de sanctionner. Les résultats servent à améliorer le programme."
+      }
+    ]
+  }
+]

@@ -1,0 +1,191 @@
+[
+  {
+    "id": "fc_cm1_01",
+    "chapter": "CM1",
+    "theme": "Architecture AD",
+    "front": "NTDS.dit",
+    "back": "Base de données principale d'Active Directory, stockée sur chaque contrôleur de domaine. Contient TOUS les objets AD (utilisateurs, groupes, ordinateurs) et leurs attributs, y compris les hashes NT des mots de passe. Cible des attaques DCSync et Pass-the-Hash."
+  },
+  {
+    "id": "fc_cm1_02",
+    "chapter": "CM1",
+    "theme": "Architecture AD",
+    "front": "SYSVOL",
+    "back": "Dossier partagé sur tous les DC, contenant les scripts de connexion et les GPO. Répliqué entre DC via DFSR (Distributed File System Replication). À distinguer de NTDS.dit (objets AD) et de NTDS.dit (hashes)."
+  },
+  {
+    "id": "fc_cm1_03",
+    "chapter": "CM1",
+    "theme": "Architecture AD",
+    "front": "Hiérarchie Active Directory",
+    "back": "OU (Organizational Unit) ⊂ Domaine ⊂ Arbre (espace de noms continu) ⊂ Forêt (schéma et catalogue global partagés)\n\nExemple: ou=Compta,dc=iutvannes,dc=bzh est une OU dans le domaine iutvannes.bzh"
+  },
+  {
+    "id": "fc_cm1_04",
+    "chapter": "CM1",
+    "theme": "Protocoles AD",
+    "front": "3 protocoles principaux d'Active Directory",
+    "back": "• LDAP (port 389) : gestion de l'annuaire, requêtes sur les objets\n• DNS : résolution de noms, localisation des DC et KDC\n• Kerberos (port 88) : authentification et gestion des sessions"
+  },
+  {
+    "id": "fc_cm1_05",
+    "chapter": "CM1",
+    "theme": "Protocoles AD",
+    "front": "Mécanisme Kerberos (TGT / TGS)",
+    "back": "1. Client → AS (KDC) : demande TGT (avec identifiant + timestamp chiffré)\n2. AS → Client : TGT chiffré avec clé krbtgt\n3. Client → TGS (KDC) : TGT + SPN du service voulu\n4. TGS → Client : ticket TGS chiffré avec clé du compte de service\n5. Client → Serveur : présente le TGS\n6. Serveur vérifie et autorise l'accès"
+  },
+  {
+    "id": "fc_cm1_06",
+    "chapter": "CM1",
+    "theme": "Protocoles AD",
+    "front": "NTLM challenge/response",
+    "back": "1. Client demande accès au serveur\n2. Serveur envoie un challenge aléatoire de 64 bits\n3. Client chiffre le challenge avec le hash NT de son mdp → réponse\n4. Serveur vérifie (même calcul avec le hash du DC)\n⚠ Vulnérable à : Pass-the-Hash, NTLM Relay, force brute"
+  },
+  {
+    "id": "fc_cm1_07",
+    "chapter": "CM1",
+    "theme": "Attaques AD",
+    "front": "Kerberoasting",
+    "back": "Attaque ciblant les comptes avec SPN.\n\nPrincipe : demander un ticket TGS (chiffré avec le mdp du compte de service) depuis n'importe quel compte du domaine, puis cracker le ticket hors ligne par force brute.\n\nCibles : comptes UTILISATEURS avec SPN (pas machines — mdp 128 chars)\nRem. : MSA/gMSA gèrent automatiquement les mdp → résistants"
+  },
+  {
+    "id": "fc_cm1_08",
+    "chapter": "CM1",
+    "theme": "Attaques AD",
+    "front": "AS-REP Roasting",
+    "back": "Attaque ciblant les comptes avec pré-authentification Kerberos DÉSACTIVÉE.\n\nPrincipe : demander une réponse AS-REP (chiffrée avec le mdp de la cible) sans même avoir de compte valide, puis cracker hors ligne.\n\nDifférence avec Kerberoasting : cible des comptes sans pré-auth (pas de SPN nécessaire)"
+  },
+  {
+    "id": "fc_cm1_09",
+    "chapter": "CM1",
+    "theme": "Attaques AD",
+    "front": "Pass-the-Hash",
+    "back": "Attaque exploitant NTLM.\n\nPrincipe : s'authentifier avec le hash NT directement, sans connaître le mdp en clair.\n\nFonctionne car NTLM accepte le hash comme preuve d'identité. Le hash est récupéré via NTDS.dit (DCSync) ou la mémoire lsass.exe.\n\nOutil : Impacket psexec, CrackMapExec"
+  },
+  {
+    "id": "fc_cm1_10",
+    "chapter": "CM1",
+    "theme": "Attaques AD",
+    "front": "DCSync",
+    "back": "Simulation d'une réplication de DC pour voler tous les hashes.\n\nPrincipe : un compte avec droits de réplication (GetChanges + GetChangesAll) demande une synchro → récupère tous les objets AD y compris les hashes NTLM de tous les utilisateurs.\n\nOutil : Impacket secretsdump\nPré-requis : droits de réplication (souvent via délégation inappropriée ou DnsAdmins)"
+  },
+  {
+    "id": "fc_cm1_11",
+    "chapter": "CM1",
+    "theme": "Attaques AD",
+    "front": "Golden Ticket vs Silver Ticket",
+    "back": "Golden Ticket : TGT forgé avec le hash de krbtgt → accès TOTAL au domaine pour n'importe quel utilisateur. Compromission totale.\n\nSilver Ticket : TGS forgé avec le hash d'un compte de service → accès à CE service spécifique seulement.\n\nGolden > Silver en termes d'impact."
+  },
+  {
+    "id": "fc_cm1_12",
+    "chapter": "CM1",
+    "theme": "Durcissement AD",
+    "front": "gMSA (group Managed Service Accounts)",
+    "back": "Comptes de service dont le mot de passe est géré automatiquement par l'AD (comme les comptes machines) : complexe, renouvelé régulièrement.\n\nAvantage : résistant au Kerberoasting (mdp impossible à cracker)\nDisponible depuis : Windows Server 2012\nUtilisation : remplacer les comptes utilisateurs avec SPN par des gMSA"
+  },
+  {
+    "id": "fc_cm1_13",
+    "chapter": "CM1",
+    "theme": "Durcissement AD",
+    "front": "MachineAccountQuota",
+    "back": "Attribut AD définissant le nombre de machines qu'un utilisateur standard peut ajouter au domaine.\n\nDéfaut : 10 (dangereux)\nRecommandé : 0 (seuls les admins peuvent joindre des machines)\n\nRisque : un attaquant crée une machine sous son contrôle pour mener des attaques depuis le domaine"
+  },
+  {
+    "id": "fc_cm2_01",
+    "chapter": "CM2",
+    "theme": "Protocoles sécurisés",
+    "front": "TLS Handshake",
+    "back": "1. Client Hello (versions TLS, cipher suites)\n2. Server Hello + certificat (clé publique)\n3. Échange de clé (Diffie-Hellman ou RSA) → clé de session symétrique\n4. Finished (premier message chiffré pour vérification)\n→ Session chiffrée avec clé symétrique\n\nAsymétrique pour l'échange de clé, symétrique pour les données."
+  },
+  {
+    "id": "fc_cm2_02",
+    "chapter": "CM2",
+    "theme": "Protocoles sécurisés",
+    "front": "IPSec : AH vs ESP",
+    "back": "AH (Authentication Header) :\n• Intégrité + Authentification\n• PAS de chiffrement\n• On voit le contenu mais on sait qu'il n'a pas été modifié\n\nESP (Encapsulating Security Payload) :\n• Confidentialité (chiffrement) + Intégrité + Authentification\n• Le plus utilisé"
+  },
+  {
+    "id": "fc_cm2_03",
+    "chapter": "CM2",
+    "theme": "Protocoles sécurisés",
+    "front": "IPSec : mode transport vs mode tunnel",
+    "back": "Mode transport : protège uniquement le payload IP. En-tête IP original visible. Utilisé pour communications hôte-à-hôte.\n\nMode tunnel : encapsule TOUT le paquet IP dans un nouveau paquet. Utilisé pour VPN site-à-site (les passerelles encapsulent/désencapsulent)."
+  },
+  {
+    "id": "fc_cm2_04",
+    "chapter": "CM2",
+    "theme": "Pare-feu",
+    "front": "Types de pare-feu",
+    "back": "• Filtrage de paquets (stateless) : IP/port, chaque paquet indépendant\n• Stateful : table d'état des connexions TCP, détecte anomalies\n• Proxy/applicatif : inspecte le contenu applicatif (couche 7)\n• WAF (Web Application Firewall) : spécialisé HTTP/HTTPS\n• NGFW (Next-Gen) : DPI + détection de menaces intégrée\n• Cloud : périmètre réseau cloud"
+  },
+  {
+    "id": "fc_cm2_05",
+    "chapter": "CM2",
+    "theme": "IDS/IPS",
+    "front": "IDS vs IPS",
+    "back": "IDS (Intrusion Detection System) :\n• Mode passif (copie du trafic)\n• Détecte et alerte\n• Ne bloque PAS\n\nIPS (Intrusion Prevention System) :\n• Mode inline (dans le flux réseau)\n• Détecte ET bloque en temps réel\n• Peut perturber si mal configuré (faux positifs)\n\nEx: Snort peut fonctionner en IDS (-A cmg) ou IPS (mode -Q avec NFQUEUE)"
+  },
+  {
+    "id": "fc_cm2_06",
+    "chapter": "CM2",
+    "theme": "IDS/IPS",
+    "front": "Détection par signature vs anomalie",
+    "back": "Par signature :\n+ Peu de faux positifs\n+ Rapide\n− Aveugle aux zero-day\n\nPar anomalie :\n+ Détecte les attaques inconnues (zero-day)\n+ Comportemental\n− Plus de faux positifs\n− Nécessite apprentissage du 'normal'\n\nLes SIEM modernes combinent les deux."
+  },
+  {
+    "id": "fc_cm2_07",
+    "chapter": "CM2",
+    "theme": "Supervision",
+    "front": "SNMP",
+    "back": "Simple Network Management Protocol.\nPermet de collecter automatiquement des informations sur les équipements réseau (état, performances) et recevoir des alertes.\n\nFonctionnement : agent SNMP sur l'équipement → transmet au serveur de supervision.\n\nOutils : Nagios, Centreon (basé Nagios), Zabbix"
+  },
+  {
+    "id": "fc_cm3_01",
+    "chapter": "CM3",
+    "theme": "Continuité d'activité",
+    "front": "RTO vs RPO",
+    "back": "RTO (Recovery Time Objective) : durée maximale d'interruption acceptable → combien de temps peut-on être en panne ?\n\nRPO (Recovery Point Objective) : perte de données maximale acceptable → jusqu'où peut-on remonter dans le temps ?\n\nEx: RTO=4h, RPO=2h → opérationnel en <4h, sauvegardes toutes les 2h"
+  },
+  {
+    "id": "fc_cm3_02",
+    "chapter": "CM3",
+    "theme": "Types de sauvegarde",
+    "front": "Complète vs Incrémentielle vs Différentielle",
+    "back": "Complète : tout sauvegarde. Lent/volumineux, rapide à restaurer.\n\nIncrémentielle : uniquement les changements depuis le DERNIER backup. Rapide/léger, mais restauration lente (complète + toutes les incrémentales).\n\nDifférentielle : tout depuis la dernière COMPLÈTE. Taille croissante, mais restauration rapide (complète + dernière diff)."
+  },
+  {
+    "id": "fc_cm3_03",
+    "chapter": "CM3",
+    "theme": "Stratégie de sauvegarde",
+    "front": "Règle 3-2-1",
+    "back": "3 copies des données\n2 types de supports différents (ex: HDD local + cloud)\n1 copie hors site\n\nProtège contre : défaillance matérielle, ransomware (si la copie hors site est immuable/offline), sinistre physique (incendie, inondation)."
+  },
+  {
+    "id": "fc_cm3_04",
+    "chapter": "CM3",
+    "theme": "Stratégie de sauvegarde",
+    "front": "Sauvegarde immuable (WORM)",
+    "back": "Write Once Read Many : données non modifiables ni supprimables pendant une période définie.\n\nProtège contre : ransomwares qui ciblent aussi les sauvegardes.\nMême un admin ne peut pas supprimer une sauvegarde WORM.\n\nDisponible : baies NAS/SAN modernes, S3 Object Lock (AWS), Azure Immutable Storage."
+  },
+  {
+    "id": "fc_cm3_05",
+    "chapter": "CM3",
+    "theme": "Sécurisation des échanges",
+    "front": "4 principes de sécurisation des échanges",
+    "back": "Confidentialité : seuls les destinataires autorisés lisent (chiffrement)\n\nIntégrité : le message n'a pas été modifié (hash/MAC/signature)\n\nAuthenticité : le message vient bien de l'expéditeur prétendu (signature numérique)\n\nTraçabilité : non-répudiation, on peut prouver qui a envoyé quoi et quand"
+  },
+  {
+    "id": "fc_cm4_01",
+    "chapter": "CM4",
+    "theme": "Ingénierie sociale",
+    "front": "5 situations de sensibilisation (scénarios du cours)",
+    "back": "1. Partage d'identifiants → perte de traçabilité et imputabilité\n2. Clé USB piégée (baiting) → malware à l'insertion\n3. BYOD / ordinateur personnel → surface d'attaque non contrôlée\n4. Mauvaise config serveur public → services/ports exposés, identifiants défaut\n5. Intrusion physique (tailgating) → contourne les contrôles d'accès"
+  },
+  {
+    "id": "fc_cm4_02",
+    "chapter": "CM4",
+    "theme": "Sensibilisation",
+    "front": "Démarche de sensibilisation efficace",
+    "back": "1. Soutien de la direction (donner l'exemple)\n2. Sensibiliser les managers en premier\n3. Sessions par service (contexte métier)\n4. Simulation phishing AVANT → baseline\n5. Formation (présentiel + exemples vie privée)\n6. Simulation phishing APRÈS → mesure d'amélioration\n\nOutil : GoPhish pour les simulations de phishing"
+  }
+]

@@ -1,0 +1,13 @@
+{
+  "name": "revision-r4b12",
+  "version": "1.0.0",
+  "description": "Site de révision R4.B.12 - Sécurité système et réseaux",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
