@@ -63,14 +63,12 @@ L'app tourne sur **http://localhost:4242**.
 
 ## Installer le skill Claude
 
-Le skill `/generate-revision` est inclus dans ce repo. Copie-le dans ton dossier de skills Claude Code :
+Le skill `/generate-revision` est inclus dans ce repo. Copie-le dans ton dossier de commandes Claude Code :
 
 ```bash
-cp ~/revision-app/skills/generate-revision.md ~/.claude/skills/
+mkdir -p ~/.claude/commands
+cp ~/revision-app/skills/generate-revision.md ~/.claude/commands/
 ```
-
-> Si tu n'as pas encore de dossier `~/.claude/skills/`, crée-le d'abord :
-> `mkdir -p ~/.claude/skills`
 
 ---
 
