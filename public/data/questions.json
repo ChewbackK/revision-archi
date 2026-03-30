@@ -1,1002 +1,1076 @@
 {
+  "courseId": "R4B10",
+  "title": "R4.B.10 — Cryptographie et sécurité",
+  "subtitle": "BUT2 Informatique",
+  "examDate": "2026-03-30T08:00:00",
   "chapters": {
-    "CM1": {
-      "title": "Sécurité Active Directory",
+    "CH1": {
+      "title": "Cryptographie symétrique",
       "color": "#7c3aed"
     },
-    "CM2": {
-      "title": "Sécurité des réseaux",
+    "CH2": {
+      "title": "Cryptographie asymétrique et OpenSSL",
       "color": "#0891b2"
     },
-    "CM3": {
-      "title": "Sauvegardes et continuité",
+    "CH3": {
+      "title": "Hachage et sécurité des mots de passe",
       "color": "#059669"
     },
-    "CM4": {
-      "title": "Bonnes pratiques",
+    "CH4": {
+      "title": "Codes détecteurs d'erreurs et intégrité",
       "color": "#d97706"
     }
   },
   "questions": [
     {
-      "id": "cm1_001",
-      "chapter": "CM1",
-      "theme": "Architecture AD",
-      "question": "Que contient le fichier NTDS.dit sur un contrôleur de domaine ?",
+      "id": "ch1_001",
+      "chapter": "CH1",
+      "theme": "Principe de base",
+      "question": "Quel est l'inconvénient majeur de la cryptographie symétrique ?",
       "options": [
-        "Les journaux d'événements Windows",
-        "La base de données Active Directory avec tous les objets, attributs et hashes des mots de passe",
-        "Les scripts de connexion et les GPO",
-        "Les certificats SSL du domaine"
+        "La lenteur du chiffrement",
+        "Le partage d'un secret (la clé commune K)",
+        "La taille trop grande des clés",
+        "L'impossibilité de chiffrer des fichiers volumineux"
       ],
       "correct": 1,
-      "explanation": "NTDS.dit est la base de données principale d'AD, stockée sur chaque DC. Elle contient tous les objets (utilisateurs, groupes, ordinateurs) et leurs attributs, y compris les hashes des mots de passe (NTLM). C'est pourquoi elle est la cible des attaques DCSync et Pass-the-Hash."
+      "explanation": "L'inconvénient majeur est le partage du secret : les deux parties doivent posséder la même clé K, ce qui pose un problème de distribution sécurisée. Le chiffrement symétrique est au contraire rapide et utilise des clés plutôt courtes (128–256 bits)."
     },
     {
-      "id": "cm1_002",
-      "chapter": "CM1",
-      "theme": "Architecture AD",
-      "question": "Quel est le rôle de SYSVOL dans Active Directory ?",
+      "id": "ch1_002",
+      "chapter": "CH1",
+      "theme": "Principe de base",
+      "question": "Quelle est la taille typique des clés en cryptographie symétrique ?",
       "options": [
-        "Stocker les hashes des mots de passe des utilisateurs",
-        "Héberger les scripts de connexion et les GPO, répliqués entre tous les DC via DFSR",
-        "Gérer les certificats SSL du domaine",
-        "Synchroniser les horodatages entre contrôleurs de domaine"
-      ],
-      "correct": 1,
-      "explanation": "SYSVOL est un dossier partagé sur tous les DC contenant les scripts de connexion et les GPO. Il est répliqué entre DC via DFSR (Distributed File System Replication). C'est distinct de NTDS.dit qui contient les objets AD."
-    },
-    {
-      "id": "cm1_003",
-      "chapter": "CM1",
-      "theme": "Architecture AD",
-      "question": "Quelle est la hiérarchie correcte dans Active Directory, de la plus petite à la plus grande unité ?",
-      "options": [
-        "Forêt → Arbre → Domaine → OU",
-        "OU → Domaine → Arbre → Forêt",
-        "Domaine → OU → Arbre → Forêt",
-        "OU → Arbre → Domaine → Forêt"
-      ],
-      "correct": 1,
-      "explanation": "La hiérarchie AD : OU (unité organisationnelle, pour organiser les objets dans un domaine) ⊂ Domaine ⊂ Arbre (domaines liés partageant un espace de noms continu) ⊂ Forêt (ensemble d'arbres partageant le même schéma et catalogue global)."
-    },
-    {
-      "id": "cm1_004",
-      "chapter": "CM1",
-      "theme": "Protocoles AD",
-      "question": "Sur quel port LDAP communique-t-il par défaut avec le contrôleur de domaine ?",
-      "options": [
-        "443",
-        "3389",
-        "389",
-        "88"
+        "2048 bits",
+        "512 bits",
+        "128 à 256 bits",
+        "64 bits uniquement"
       ],
       "correct": 2,
-      "explanation": "LDAP utilise le port 389 par défaut. LDAPS (LDAP sécurisé) utilise le port 636. Kerberos utilise le port 88. RDP utilise 3389. HTTPS utilise 443."
+      "explanation": "Les clés symétriques sont plutôt courtes : 128 à 256 bits. À comparer avec RSA (cryptographie asymétrique) qui utilise des clés de 2048 bits ou plus."
     },
     {
-      "id": "cm1_005",
-      "chapter": "CM1",
-      "theme": "Protocoles AD",
-      "question": "Quel est le rôle du KDC (Key Distribution Center) dans le protocole Kerberos ?",
+      "id": "ch1_003",
+      "chapter": "CH1",
+      "theme": "Chiffrement par flot",
+      "question": "Quelle opération est typiquement utilisée pour combiner la keystream et le message en clair dans un chiffrement par flot ?",
       "options": [
-        "Chiffrer les communications réseau entre clients et serveurs",
-        "Gérer les certificats SSL du domaine",
-        "Assurer l'authentification (AS) et émettre les tickets TGT/TGS via le TGS",
-        "Synchroniser les mots de passe entre contrôleurs de domaine"
+        "Addition modulaire",
+        "Multiplication matricielle",
+        "XOR (ou exclusif) bit-à-bit",
+        "Substitution par S-Box"
       ],
       "correct": 2,
-      "explanation": "Le KDC est le composant central de Kerberos, hébergé sur le DC. Il comprend : l'Authentication Server (AS) qui vérifie l'identité et émet le TGT, et le Ticket Granting Server (TGS) qui échange le TGT contre des tickets de service (TGS) pour accéder aux ressources."
+      "explanation": "Le chiffrement par flot combine la keystream pseudo-aléatoire avec les données en clair à l'aide d'un XOR bit-à-bit. C'est une opération simple et très rapide, ce qui rend ce type de chiffrement adapté aux applications temps réel."
     },
     {
-      "id": "cm1_006",
-      "chapter": "CM1",
-      "theme": "Protocoles AD",
-      "question": "Comment fonctionne l'authentification NTLM (mécanisme challenge/response) ?",
+      "id": "ch1_004",
+      "chapter": "CH1",
+      "theme": "Chiffrement par flot",
+      "question": "Quel algorithme de chiffrement par flot est utilisé par le protocole WEP ?",
       "options": [
-        "Le client envoie son mot de passe en clair au serveur",
-        "Le serveur envoie un challenge aléatoire de 64 bits, le client répond en le chiffrant avec le hash NT de son mot de passe",
-        "Le client demande un ticket TGT au KDC puis le présente au serveur",
-        "Le serveur vérifie le certificat SSL du client"
-      ],
-      "correct": 1,
-      "explanation": "NTLM : le serveur envoie un challenge aléatoire, le client le chiffre avec le hash NT de son mot de passe et renvoie la réponse. Le serveur vérifie en faisant le même calcul (avec le hash stocké dans NTDS.dit). Le mot de passe n'est jamais transmis, mais le hash suffit — d'où Pass-the-Hash."
-    },
-    {
-      "id": "cm1_007",
-      "chapter": "CM1",
-      "theme": "Attaques AD",
-      "question": "En quoi consiste l'attaque Pass-the-Hash ?",
-      "options": [
-        "Craquer le mot de passe d'un utilisateur par force brute hors ligne",
-        "S'authentifier directement avec le hash NT sans avoir besoin du mot de passe en clair",
-        "Capturer le ticket TGT d'un utilisateur sur le réseau",
-        "Modifier les hashes stockés dans NTDS.dit"
-      ],
-      "correct": 1,
-      "explanation": "Pass-the-Hash exploite le fait que NTLM accepte le hash NT directement (pas besoin du mot de passe). Un attaquant qui récupère le hash (via NTDS.dit ou la mémoire lsass.exe) peut s'authentifier sans jamais déchiffrer le mot de passe. Outil typique : Impacket psexec."
-    },
-    {
-      "id": "cm1_008",
-      "chapter": "CM1",
-      "theme": "Attaques AD",
-      "question": "Quelle est la condition préalable minimale pour réussir une attaque Kerberoasting ?",
-      "options": [
-        "Avoir les droits d'administrateur du domaine",
-        "Être sur le même sous-réseau que le contrôleur de domaine",
-        "Posséder n'importe quel compte valide sur le domaine",
-        "Avoir désactivé la pré-authentification Kerberos"
+        "AES",
+        "DES",
+        "RC4",
+        "ChaCha20"
       ],
       "correct": 2,
-      "explanation": "Pour le Kerberoasting, il suffit d'un compte valide sur le domaine (même sans privilèges). L'attaquant demande des tickets TGS pour tous les comptes ayant un SPN, puis tente de cracker ces tickets hors ligne par force brute — car ils sont chiffrés avec le hash du mot de passe du compte de service."
+      "explanation": "Le protocole WEP utilise l'algorithme RC4, un chiffrement par flot. RC4 est également utilisé dans WPA (première version). D'autres exemples de chiffrement par flot incluent E0 (Bluetooth), A5 (GSM) et ChaCha20."
     },
     {
-      "id": "cm1_009",
-      "chapter": "CM1",
-      "theme": "Attaques AD",
-      "question": "Pourquoi les comptes machines ne sont-ils PAS des cibles viables pour le Kerberoasting ?",
+      "id": "ch1_005",
+      "chapter": "CH1",
+      "theme": "Chiffrement par flot",
+      "question": "Quel est le rôle du vecteur d'initialisation (IV) dans le chiffrement par flot ?",
       "options": [
-        "Les comptes machines n'ont pas de SPN",
-        "Les comptes machines ont des mots de passe de 128 caractères aléatoires renouvelés tous les 30 jours — impossible à craquer",
-        "Les comptes machines ne peuvent pas émettre de tickets TGS",
-        "Les comptes machines sont protégés par un chiffrement AES-256 spécifique"
-      ],
-      "correct": 1,
-      "explanation": "Les comptes machines ont des mots de passe générés aléatoirement de 128 caractères, renouvelés automatiquement tous les 30 jours par l'AD. Aucune attaque par force brute n'est viable. En revanche, les comptes utilisateurs avec SPN n'ont généralement pas cette politique stricte — ce sont les cibles privilégiées."
-    },
-    {
-      "id": "cm1_010",
-      "chapter": "CM1",
-      "theme": "Attaques AD",
-      "question": "Quelle vulnérabilité spécifique permet l'attaque AS-REP Roasting ?",
-      "options": [
-        "Un SPN mal configuré sur un compte utilisateur",
-        "La pré-authentification Kerberos désactivée sur un compte utilisateur",
-        "Un mot de passe identique entre deux comptes du domaine",
-        "Des droits de réplication accordés à un utilisateur non-admin"
-      ],
-      "correct": 1,
-      "explanation": "AS-REP Roasting cible les comptes dont la pré-authentification Kerberos est désactivée (option 'Do not require Kerberos preauthentication'). Sans pré-authentification, l'attaquant peut demander une réponse AS-REP chiffrée avec le mot de passe de la cible et la cracker hors ligne, sans même avoir de compte valide."
-    },
-    {
-      "id": "cm1_011",
-      "chapter": "CM1",
-      "theme": "Attaques AD",
-      "question": "Que permet une attaque DCSync réussie à l'attaquant ?",
-      "options": [
-        "Modifier les GPO du domaine sans être détecté",
-        "Ajouter des utilisateurs dans les groupes Domain Admins",
-        "Récupérer les hashes de mots de passe de TOUS les utilisateurs du domaine en simulant une réplication DC",
-        "Créer de faux tickets TGT valides pour n'importe quel utilisateur"
+        "Remplacer la clé secrète",
+        "Augmenter la taille du message",
+        "Éviter de générer le même aléa quand on chiffre plusieurs messages avec la même clé",
+        "Stocker le hash du message"
       ],
       "correct": 2,
-      "explanation": "DCSync exploite le mécanisme de réplication des DC. Un compte avec droits de réplication (GetChanges + GetChangesAll) peut demander une synchronisation et récupérer tous les objets AD, y compris les hashes NTLM de tous les utilisateurs. Outil : Impacket secretsdump. Pré-requis : compte avec droits de réplication (ex: un compte compromis dans DnsAdmins ou délégation inappropriée)."
+      "explanation": "Si on chiffre plusieurs messages avec la même clé, on génère le même flux pseudo-aléatoire. Le vecteur d'initialisation (IV) est une entrée auxiliaire qui assure que chaque chiffrement produit un flux différent, même avec la même clé."
     },
     {
-      "id": "cm1_012",
-      "chapter": "CM1",
-      "theme": "Attaques AD",
-      "question": "Quelle est la différence entre un Silver Ticket et un Golden Ticket ?",
+      "id": "ch1_006",
+      "chapter": "CH1",
+      "theme": "Sécurité WEP",
+      "question": "Depuis quelle année peut-on pénétrer un réseau WEP en quelques secondes ?",
       "options": [
-        "Silver = forgé avec le hash de krbtgt → accès total au domaine ; Golden = forgé avec le hash d'un service → accès à ce service",
-        "Silver = forgé avec le hash d'un compte de service → accès à ce service ; Golden = forgé avec le hash de krbtgt → accès total au domaine",
-        "Silver et Golden sont identiques, seule la durée de validité diffère",
-        "Silver concerne un seul domaine ; Golden concerne toute la forêt"
+        "1999",
+        "2001",
+        "2006",
+        "2010"
+      ],
+      "correct": 2,
+      "explanation": "En 2001, l'exploitation des faiblesses de WEP permettait de reconstituer la clé en quelques heures. Depuis 2006, en utilisant la fragmentation des paquets, on pénètre un réseau WEP en quelques secondes."
+    },
+    {
+      "id": "ch1_007",
+      "chapter": "CH1",
+      "theme": "Sécurité WEP",
+      "question": "Pourquoi une collision d'IV constitue-t-elle une faille majeure dans le protocole WEP ?",
+      "options": [
+        "Elle ralentit le débit du réseau",
+        "Elle permet à un attaquant de récupérer la keystream si une partie du message en clair est connue",
+        "Elle empêche le déchiffrement par le destinataire",
+        "Elle augmente la taille des paquets transmis"
       ],
       "correct": 1,
-      "explanation": "Silver Ticket : ticket TGS forgé avec le hash du compte de service cible. Donne accès à CE service spécifique pour n'importe quel utilisateur/groupe. Golden Ticket : ticket TGT forgé avec le hash du compte krbtgt. Donne accès TOTAL à tout le domaine, en tant que n'importe quel utilisateur. Le Golden Ticket est la compromission totale du domaine."
+      "explanation": "Quand deux messages sont chiffrés avec le même IV (et la même clé), ils utilisent la même keystream. Si l'attaquant connaît partiellement un message en clair (par ex. le préfixe 'IPv4'), il peut déduire la keystream et déchiffrer d'autres messages ayant le même IV."
     },
     {
-      "id": "cm1_013",
-      "chapter": "CM1",
-      "theme": "Durcissement AD",
-      "question": "Pourquoi est-il recommandé de réduire MachineAccountQuota à 0 ?",
+      "id": "ch1_008",
+      "chapter": "CH1",
+      "theme": "Sécurité WEP",
+      "question": "Quelle information de l'en-tête d'un paquet WEP est transmise en clair ?",
       "options": [
-        "Améliorer les performances de l'AD en limitant le nombre d'objets computer",
-        "Respecter la politique de licences Windows Server",
-        "Éviter qu'un attaquant authentifié puisse ajouter une machine sous son contrôle au domaine pour mener des attaques Kerberos",
-        "Empêcher les utilisateurs de changer le nom de leur ordinateur"
+        "La clé de chiffrement",
+        "Le message complet",
+        "Le vecteur d'initialisation (IV)",
+        "La keystream"
       ],
       "correct": 2,
-      "explanation": "Par défaut, tout utilisateur authentifié peut ajouter jusqu'à 10 machines au domaine (MachineAccountQuota=10). Un attaquant peut créer une machine factice, obtenir un compte de service avec SPN, et mener des attaques Kerberoasting ou d'autres attaques depuis cette machine. Réduire à 0 = seuls les admins peuvent joindre des machines au domaine."
+      "explanation": "L'IV est un des champs de l'en-tête d'un paquet WEP et il est transmis en clair. Un attaquant qui intercepte un paquet connaît donc déjà l'IV, ce qui lui donne une partie de la clé de session utilisée par RC4."
     },
     {
-      "id": "cm1_014",
-      "chapter": "CM1",
-      "theme": "Durcissement AD",
-      "question": "Pourquoi les gMSA (group Managed Service Accounts) sont-ils recommandés comme remédiation au Kerberoasting ?",
+      "id": "ch1_009",
+      "chapter": "CH1",
+      "theme": "Chiffrement par flot vs par bloc",
+      "question": "Quelle est la différence principale entre chiffrement par flot et chiffrement par bloc ?",
       "options": [
-        "Les gMSA désactivent automatiquement le protocole Kerberos pour les services concernés",
-        "Les gMSA n'ont pas de SPN et ne peuvent donc pas être ciblés",
-        "Les gMSA ont des mots de passe complexes gérés automatiquement par l'AD (comme les comptes machines), rendant le cracking impossible",
-        "Les gMSA utilisent un chiffrement AES plus robuste pour les tickets TGS"
+        "Le chiffrement par flot utilise une clé publique, le bloc une clé privée",
+        "Le chiffrement par flot chiffre bit-à-bit à la volée, le bloc découpe les données en blocs de taille fixe",
+        "Le chiffrement par bloc est toujours plus rapide que le chiffrement par flot",
+        "Le chiffrement par flot ne nécessite pas de clé"
+      ],
+      "correct": 1,
+      "explanation": "Le chiffrement par flot génère une keystream et chiffre les données bit-à-bit (ou octet par octet), à la volée. Le chiffrement par bloc découpe les données en blocs de taille fixe (64 ou 128 bits typiquement) et chiffre chaque bloc séparément, puis les combine avec un mode opératoire."
+    },
+    {
+      "id": "ch1_010",
+      "chapter": "CH1",
+      "theme": "Chiffrement par flot",
+      "question": "Quelle propriété du chiffrement par flot le rend adapté aux applications temps réel ?",
+      "options": [
+        "Il utilise des clés très longues",
+        "Il chiffre à la volée sans attendre tout le message",
+        "Il utilise un mode opératoire CBC",
+        "Il nécessite moins de mémoire que le hachage"
+      ],
+      "correct": 1,
+      "explanation": "Le chiffrement par flot chiffre les données à la volée, sans attendre d'avoir lu tout le message ou une partie de celui-ci. Cette propriété le rend bien adapté aux applications temps réel comme le streaming ou les communications réseau."
+    },
+    {
+      "id": "ch1_011",
+      "chapter": "CH1",
+      "theme": "AES",
+      "question": "Quelle est la taille de bloc utilisée par l'algorithme AES ?",
+      "options": [
+        "64 bits",
+        "128 bits",
+        "256 bits",
+        "512 bits"
+      ],
+      "correct": 1,
+      "explanation": "AES utilise toujours des blocs de 128 bits (16 octets), quelle que soit la taille de la clé. Ce sont les clés qui varient : 128, 192 ou 256 bits, correspondant respectivement à 10, 12 ou 14 tours de chiffrement."
+    },
+    {
+      "id": "ch1_012",
+      "chapter": "CH1",
+      "theme": "AES",
+      "question": "Combien de tours de chiffrement utilise AES-256 ?",
+      "options": [
+        "10 tours",
+        "12 tours",
+        "14 tours",
+        "16 tours"
       ],
       "correct": 2,
-      "explanation": "Les gMSA (depuis Windows Server 2012) ont des mots de passe complexes gérés automatiquement par l'AD avec renouvellement régulier — exactement comme les comptes machines. Même si un attaquant obtient le ticket TGS, il ne peut pas le cracker. C'est la recommandation principale contre le Kerberoasting."
+      "explanation": "AES-256 utilise 14 tours. Le nombre de tours dépend de la taille de la clé : AES-128 → 10 tours, AES-192 → 12 tours, AES-256 → 14 tours. Plus la clé est grande, plus il y a de tours pour renforcer la sécurité."
     },
     {
-      "id": "cm1_015",
-      "chapter": "CM1",
-      "theme": "Architecture AD",
-      "question": "Quelle est la différence entre un groupe de sécurité et un groupe de distribution dans AD ?",
+      "id": "ch1_013",
+      "chapter": "CH1",
+      "theme": "AES",
+      "question": "Dans AES, les 16 octets d'un bloc sont placés dans quelle structure de données ?",
       "options": [
-        "Groupes de sécurité : pour les permissions sur les ressources (ACL) ; Groupes de distribution : uniquement pour la messagerie",
-        "Groupes de sécurité : uniquement pour les utilisateurs ; Groupes de distribution : pour les ordinateurs aussi",
-        "Groupes de sécurité : créés par les admins ; Groupes de distribution : créés par les utilisateurs",
-        "Groupes de sécurité : visibles sur le réseau ; Groupes de distribution : masqués"
+        "Un arbre binaire",
+        "Une liste chaînée",
+        "Une matrice 4×4",
+        "Un tableau unidimensionnel de 128 cases"
+      ],
+      "correct": 2,
+      "explanation": "Dans AES, le message est découpé en blocs de 128 bits (16 octets). Ces 16 octets sont placés dans une matrice 4×4 sur laquelle sont réalisées les opérations de chaque tour : XOR avec sous-clés, substitution non linéaire, décalage de lignes et mélange des colonnes."
+    },
+    {
+      "id": "ch1_014",
+      "chapter": "CH1",
+      "theme": "AES",
+      "question": "Laquelle de ces opérations n'est PAS réalisée dans un tour AES ?",
+      "options": [
+        "XOR avec des sous-clés de 128 bits",
+        "Substitution (opération non linéaire sur chaque octet)",
+        "Décalage de lignes + mélange des colonnes",
+        "Factorisation de nombres premiers"
+      ],
+      "correct": 3,
+      "explanation": "Un tour AES comporte : (1) XOR avec des sous-clés, (2) substitution non linéaire sur chaque octet, (3) décalage de lignes et mélange des colonnes (opération matricielle). La factorisation de nombres premiers est un concept lié à RSA (cryptographie asymétrique), pas à AES."
+    },
+    {
+      "id": "ch1_015",
+      "chapter": "CH1",
+      "theme": "AES",
+      "question": "La meilleure attaque connue contre AES-128 permet de réduire la complexité de combien de bits par rapport à la force brute ?",
+      "options": [
+        "0 bit (aucune attaque connue)",
+        "2 bits (soit 2^126 au lieu de 2^128)",
+        "16 bits (soit 2^112 au lieu de 2^128)",
+        "64 bits (soit 2^64 au lieu de 2^128)"
+      ],
+      "correct": 1,
+      "explanation": "La meilleure attaque connue contre AES-128 ne permet de gagner que 2 bits, soit 2^126 opérations au lieu de 2^128 pour une force brute. AES reste considéré comme très sûr, mais n'est pas immunisé contre les attaques sur son implémentation logicielle ou matérielle."
+    },
+    {
+      "id": "ch1_016",
+      "chapter": "CH1",
+      "theme": "Modes opératoires",
+      "question": "Quel mode opératoire chiffre chaque bloc indépendamment des autres ?",
+      "options": [
+        "CBC (Cipher Block Chaining)",
+        "CTR (Counter)",
+        "ECB (Electronic Codebook)",
+        "CFB (Cipher Feedback)"
+      ],
+      "correct": 2,
+      "explanation": "Le mode ECB (Electronic Codebook) chiffre chaque bloc indépendamment. C'est son inconvénient principal : des blocs en clair identiques produisent des blocs chiffrés identiques, ce qui conserve les patterns de l'image originale (comme le montre la comparaison logo IRIF en AES-128-ECB vs AES-128-CBC)."
+    },
+    {
+      "id": "ch1_017",
+      "chapter": "CH1",
+      "theme": "Modes opératoires",
+      "question": "Dans le mode CBC, quelle opération est réalisée avant de chiffrer chaque bloc ?",
+      "options": [
+        "Un hachage SHA-256 du bloc",
+        "Un XOR avec le bloc chiffré précédent (ou l'IV pour le premier bloc)",
+        "Une multiplication avec la clé",
+        "Un décalage circulaire du bloc"
+      ],
+      "correct": 1,
+      "explanation": "En mode CBC (Cipher Block Chaining), chaque bloc en clair est XORé avec le bloc chiffré précédent avant d'être chiffré. Pour le premier bloc, on utilise un vecteur d'initialisation (IV). Ce chaînage fait que des blocs en clair identiques produisent des blocs chiffrés différents."
+    },
+    {
+      "id": "ch1_018",
+      "chapter": "CH1",
+      "theme": "Modes opératoires",
+      "question": "Pourquoi le mode ECB est-il considéré comme peu sûr pour chiffrer des images ?",
+      "options": [
+        "Il ne supporte pas les fichiers de plus de 1 Mo",
+        "Il conserve les patterns visuels car les blocs identiques produisent le même chiffré",
+        "Il ne chiffre que les métadonnées de l'image",
+        "Il utilise une clé trop courte"
+      ],
+      "correct": 1,
+      "explanation": "En mode ECB, des blocs en clair identiques donnent des blocs chiffrés identiques. Pour une image, les zones de couleur uniforme produisent les mêmes blocs chiffrés, ce qui conserve les patterns visuels. Le mode CBC, en chaînant les blocs, élimine ce problème."
+    },
+    {
+      "id": "ch1_019",
+      "chapter": "CH1",
+      "theme": "DES",
+      "question": "Quelles sont les caractéristiques du chiffrement DES ?",
+      "options": [
+        "Bloc de 128 bits, clé de 128 bits",
+        "Bloc de 64 bits, clé de 56 bits",
+        "Bloc de 256 bits, clé de 256 bits",
+        "Bloc de 64 bits, clé de 128 bits"
+      ],
+      "correct": 1,
+      "explanation": "DES (Data Encryption Standard) utilise des blocs de 64 bits et une clé de 56 bits. Sa clé est considérée comme trop courte pour la sécurité moderne, c'est pourquoi il a été remplacé par AES (blocs de 128 bits, clés de 128/192/256 bits)."
+    },
+    {
+      "id": "ch1_020",
+      "chapter": "CH1",
+      "theme": "Chiffrement par flot",
+      "question": "Lequel de ces algorithmes n'est PAS un chiffrement par flot ?",
+      "options": [
+        "RC4",
+        "ChaCha20",
+        "AES",
+        "A5 (GSM)"
+      ],
+      "correct": 2,
+      "explanation": "AES est un chiffrement par bloc, pas par flot. Les chiffrements par flot incluent RC4 (WEP/WPA), E0 (Bluetooth), A5 (GSM) et ChaCha20. AES chiffre les données en blocs de 128 bits et nécessite un mode opératoire (ECB, CBC, CTR, etc.)."
+    },
+    {
+      "id": "ch2_001",
+      "chapter": "CH2",
+      "theme": "Principe asymétrique",
+      "question": "Quel est le principe fondamental de la cryptographie asymétrique ?",
+      "options": [
+        "Une seule clé partagée entre les deux parties",
+        "Deux clés distinctes : une publique pour chiffrer, une privée pour déchiffrer",
+        "Un algorithme de hachage irréversible",
+        "Un échange de clés basé sur le XOR"
+      ],
+      "correct": 1,
+      "explanation": "En cryptographie asymétrique, chaque utilisateur possède une paire de clés : une clé publique (diffusée) utilisée pour chiffrer, et une clé privée (secrète) utilisée pour déchiffrer. Le message chiffré avec la clé publique ne peut être déchiffré qu'avec la clé privée correspondante."
+    },
+    {
+      "id": "ch2_002",
+      "chapter": "CH2",
+      "theme": "Principe asymétrique",
+      "question": "Quel est l'inconvénient majeur du chiffrement asymétrique ?",
+      "options": [
+        "Il nécessite un canal sécurisé pour l'échange de clés",
+        "Sa lenteur en raison de sa complexité mathématique",
+        "Il ne fonctionne qu'avec des messages courts",
+        "Il n'existe qu'un seul algorithme (RSA)"
+      ],
+      "correct": 1,
+      "explanation": "Le chiffrement asymétrique est très lent comparé au symétrique, en raison de la complexité des opérations mathématiques (exponentiation modulaire, etc.). C'est pourquoi en pratique, on ne l'utilise que pour chiffrer de petites données (comme une clé symétrique)."
+    },
+    {
+      "id": "ch2_003",
+      "chapter": "CH2",
+      "theme": "Diffie-Hellman",
+      "question": "Quel est l'objectif du protocole Diffie-Hellman ?",
+      "options": [
+        "Chiffrer un message directement",
+        "Signer numériquement un document",
+        "Permettre à deux entités d'établir une clé secrète partagée via un canal non sécurisé",
+        "Vérifier l'intégrité d'un fichier"
+      ],
+      "correct": 2,
+      "explanation": "Diffie-Hellman permet à deux entités (Alice et Bob) de s'échanger une clé secrète partagée à travers un canal de communication non sécurisé. Ce secret, calculé indépendamment par chaque partie, n'est jamais transmis directement et sert ensuite de clé symétrique."
+    },
+    {
+      "id": "ch2_004",
+      "chapter": "CH2",
+      "theme": "Diffie-Hellman",
+      "question": "Dans le protocole Diffie-Hellman, que calcule Alice pour envoyer à Bob ?",
+      "options": [
+        "A = g + a mod p",
+        "A = g^a mod p",
+        "A = a × p mod g",
+        "A = p^g mod a"
+      ],
+      "correct": 1,
+      "explanation": "Alice choisit secrètement un entier a et envoie à Bob le nombre A = g^a mod p, où g et p sont les paramètres publics. Bob fait de même avec son secret b pour calculer B = g^b mod p. La clé partagée est K = g^(ab) mod p."
+    },
+    {
+      "id": "ch2_005",
+      "chapter": "CH2",
+      "theme": "Diffie-Hellman",
+      "question": "Sur quel problème mathématique repose la sécurité de Diffie-Hellman ?",
+      "options": [
+        "La factorisation de grands nombres",
+        "Le logarithme discret",
+        "Le problème du sac à dos",
+        "La décomposition en nombres premiers"
+      ],
+      "correct": 1,
+      "explanation": "La sécurité de Diffie-Hellman repose sur la difficulté de résoudre le problème du logarithme discret : connaissant g, p et A = g^a mod p, il est très difficile de retrouver a. C'est différent de RSA qui repose sur le problème de la factorisation."
+    },
+    {
+      "id": "ch2_006",
+      "chapter": "CH2",
+      "theme": "Diffie-Hellman",
+      "question": "À quelle attaque le protocole Diffie-Hellman est-il vulnérable ?",
+      "options": [
+        "Attaque par force brute",
+        "Attaque par table arc-en-ciel",
+        "Attaque de l'homme au milieu (Man-In-The-Middle)",
+        "Attaque par déni de service"
+      ],
+      "correct": 2,
+      "explanation": "Diffie-Hellman est vulnérable à l'attaque MITM (Man-In-The-Middle) : un attaquant peut intercepter les échanges entre Alice et Bob, établir une clé partagée avec chacun d'eux séparément, et ainsi lire et modifier tous les messages. Alice et Bob ne s'assurent à aucun moment de l'identité de l'autre."
+    },
+    {
+      "id": "ch2_007",
+      "chapter": "CH2",
+      "theme": "RSA",
+      "question": "Dans RSA, comment est calculé n ?",
+      "options": [
+        "n = p + q",
+        "n = p × q",
+        "n = p^q",
+        "n = (p-1) × (q-1)"
+      ],
+      "correct": 1,
+      "explanation": "Dans RSA, on choisit deux grands nombres premiers p et q, puis on calcule n = p × q. La valeur φ(n) = (p-1)(q-1) est utilisée pour déterminer les exposants e (public) et d (privé). La sécurité repose sur la difficulté de factoriser n pour retrouver p et q."
+    },
+    {
+      "id": "ch2_008",
+      "chapter": "CH2",
+      "theme": "RSA",
+      "question": "Que représente φ(n) dans l'algorithme RSA ?",
+      "options": [
+        "La clé publique",
+        "Le produit p × q",
+        "(p-1) × (q-1), l'indicatrice d'Euler",
+        "Le nombre de bits de la clé"
+      ],
+      "correct": 2,
+      "explanation": "φ(n) = (p-1)(q-1) est l'indicatrice d'Euler de n. Elle est utilisée pour choisir l'exposant public e (premier avec φ(n)) et calculer l'exposant privé d tel que e×d mod φ(n) = 1."
+    },
+    {
+      "id": "ch2_009",
+      "chapter": "CH2",
+      "theme": "RSA",
+      "question": "Dans RSA, la clé publique est composée de quels éléments ?",
+      "options": [
+        "(d, n)",
+        "(e, n)",
+        "(p, q)",
+        "(e, d)"
+      ],
+      "correct": 1,
+      "explanation": "La clé publique RSA est le couple (e, n), où e est l'exposant public et n = p×q. La clé privée est (d, n), où d est l'exposant privé. Pour chiffrer : C = M^e mod n. Pour déchiffrer : M = C^d mod n."
+    },
+    {
+      "id": "ch2_010",
+      "chapter": "CH2",
+      "theme": "RSA",
+      "question": "Sur quel problème mathématique repose la sécurité de RSA ?",
+      "options": [
+        "Le logarithme discret",
+        "La factorisation de n = p × q en ses facteurs premiers",
+        "Le calcul de racines carrées modulaires",
+        "Le problème du voyageur de commerce"
+      ],
+      "correct": 1,
+      "explanation": "La sécurité de RSA repose sur la difficulté de factoriser le produit n = p × q lorsque p et q sont de très grands nombres premiers. Si un attaquant parvient à factoriser n, il peut retrouver φ(n) et donc la clé privée d."
+    },
+    {
+      "id": "ch2_011",
+      "chapter": "CH2",
+      "theme": "RSA vs Diffie-Hellman",
+      "question": "Quelle est la différence principale entre RSA et Diffie-Hellman ?",
+      "options": [
+        "RSA est symétrique, DH est asymétrique",
+        "RSA permet de chiffrer des données, DH permet d'échanger une clé secrète partagée",
+        "DH est plus rapide que RSA",
+        "RSA ne nécessite pas de nombres premiers"
+      ],
+      "correct": 1,
+      "explanation": "RSA est un algorithme de chiffrement asymétrique permettant de chiffrer directement des données (petites). Diffie-Hellman est un protocole d'échange de clés : il permet à deux parties d'établir une clé secrète commune sans la transmettre. Les deux reposent sur des problèmes mathématiques différents (factorisation vs logarithme discret)."
+    },
+    {
+      "id": "ch2_012",
+      "chapter": "CH2",
+      "theme": "RSA",
+      "question": "Pourquoi RSA n'est-il utilisé en pratique que pour chiffrer de petites données ?",
+      "options": [
+        "Parce que la clé publique est trop courte",
+        "Parce que le chiffrement est coûteux en temps de calcul comparé à AES",
+        "Parce qu'il ne supporte pas les blocs de plus de 64 bits",
+        "Parce qu'il nécessite un vecteur d'initialisation"
+      ],
+      "correct": 1,
+      "explanation": "Le chiffrement RSA est coûteux en temps de calcul (exponentiation modulaire avec de grands nombres), bien plus lent que AES. En pratique, on utilise RSA pour chiffrer une clé symétrique (petite donnée), puis AES avec cette clé pour chiffrer les données volumineuses."
+    },
+    {
+      "id": "ch2_013",
+      "chapter": "CH2",
+      "theme": "OpenSSL",
+      "question": "Qu'est-ce qu'OpenSSL ?",
+      "options": [
+        "Un protocole de chiffrement symétrique",
+        "Une bibliothèque open-source implémentant les protocoles SSL et TLS",
+        "Un algorithme de hachage",
+        "Un standard de certificats numériques"
+      ],
+      "correct": 1,
+      "explanation": "OpenSSL est une bibliothèque logicielle open-source qui implémente les protocoles SSL (Secure Sockets Layer) et TLS (Transport Layer Security). Elle est largement utilisée pour sécuriser les serveurs Web, les e-mails et d'autres applications. Elle prend en charge le chiffrement symétrique/asymétrique, la génération de clés, de certificats X.509 et de CSR."
+    },
+    {
+      "id": "ch2_014",
+      "chapter": "CH2",
+      "theme": "OpenSSL",
+      "question": "Quelle commande OpenSSL permet de générer les paramètres Diffie-Hellman ?",
+      "options": [
+        "openssl genrsa",
+        "openssl dhparam",
+        "openssl enc",
+        "openssl dgst"
+      ],
+      "correct": 1,
+      "explanation": "La commande 'openssl dhparam -out dhparams.pem <taille>' génère un fichier contenant les paramètres Diffie-Hellman (nombre premier p et générateur g). Ces paramètres sont ensuite utilisés pour générer les paires de clés publique/privée des utilisateurs."
+    },
+    {
+      "id": "ch2_015",
+      "chapter": "CH2",
+      "theme": "Diffie-Hellman",
+      "question": "Dans Diffie-Hellman, comment Alice et Bob obtiennent-ils la même clé partagée sans se la transmettre ?",
+      "options": [
+        "Ils utilisent un tiers de confiance qui leur envoie la clé",
+        "Chacun calcule indépendamment K = g^(ab) mod p à partir de sa clé privée et de la clé publique de l'autre",
+        "Ils échangent leurs clés privées sur un canal chiffré",
+        "La clé est prédéfinie dans les paramètres publics p et g"
+      ],
+      "correct": 1,
+      "explanation": "Alice calcule K = B^a mod p = (g^b)^a mod p = g^(ab) mod p. Bob calcule K = A^b mod p = (g^a)^b mod p = g^(ab) mod p. Ils obtiennent le même résultat sans jamais transmettre la clé elle-même, ni leurs secrets a et b."
+    },
+    {
+      "id": "ch2_016",
+      "chapter": "CH2",
+      "theme": "OpenSSL",
+      "question": "Quelle commande OpenSSL permet de chiffrer un message avec AES-256-CBC ?",
+      "options": [
+        "openssl dhparam -aes-256-cbc",
+        "openssl genrsa -aes-256-cbc",
+        "openssl enc -aes-256-cbc -in msg.txt -out msg.enc -K <clé_hex> -iv <IV_hex>",
+        "openssl dgst -aes-256-cbc"
+      ],
+      "correct": 2,
+      "explanation": "La commande 'openssl enc -aes-256-cbc' permet de chiffrer un fichier avec AES-256 en mode CBC. On spécifie le fichier en entrée (-in), le fichier de sortie (-out), la clé en hexadécimal (-K) et le vecteur d'initialisation (-iv)."
+    },
+    {
+      "id": "ch2_017",
+      "chapter": "CH2",
+      "theme": "Principe asymétrique",
+      "question": "Pour envoyer un message chiffré à Bob, Alice utilise quelle clé ?",
+      "options": [
+        "La clé privée d'Alice",
+        "La clé publique d'Alice",
+        "La clé privée de Bob",
+        "La clé publique de Bob"
+      ],
+      "correct": 3,
+      "explanation": "Alice chiffre le message avec la clé publique de Bob. Ainsi, seul Bob peut le déchiffrer avec sa clé privée que lui seul connaît. C'est le principe du chiffrement asymétrique : on chiffre avec la clé publique du destinataire."
+    },
+    {
+      "id": "ch2_018",
+      "chapter": "CH2",
+      "theme": "OpenSSL",
+      "question": "Que signifie CSR dans le contexte d'OpenSSL ?",
+      "options": [
+        "Cipher Security Request",
+        "Certificate Signing Request",
+        "Cryptographic Session Record",
+        "Central Security Repository"
+      ],
+      "correct": 1,
+      "explanation": "CSR signifie Certificate Signing Request (demande de signature de certificat). C'est un fichier généré par OpenSSL contenant les informations d'identité et la clé publique, envoyé à une autorité de certification (CA) pour obtenir un certificat numérique signé."
+    },
+    {
+      "id": "ch2_019",
+      "chapter": "CH2",
+      "theme": "Comparaison symétrique/asymétrique",
+      "question": "Quelle affirmation est correcte concernant la cryptographie symétrique vs asymétrique ?",
+      "options": [
+        "La cryptographie asymétrique est plus rapide que la symétrique",
+        "La cryptographie symétrique utilise des clés plus longues que l'asymétrique",
+        "La cryptographie symétrique est rapide mais nécessite le partage d'un secret, l'asymétrique est lente mais résout le problème de distribution des clés",
+        "Les deux utilisent le même type de clé"
+      ],
+      "correct": 2,
+      "explanation": "La crypto symétrique est rapide (clés 128-256 bits) mais pose le problème du partage sécurisé de la clé. La crypto asymétrique résout ce problème (clés publiques/privées) mais est beaucoup plus lente (clés de 2048+ bits). En pratique, on combine les deux : asymétrique pour échanger une clé, symétrique pour chiffrer les données."
+    },
+    {
+      "id": "ch2_020",
+      "chapter": "CH2",
+      "theme": "RSA",
+      "question": "Dans RSA, quelle relation doit vérifier l'exposant privé d ?",
+      "options": [
+        "d = e × n",
+        "e × d mod φ(n) = 1",
+        "d = φ(n) - e",
+        "d × n mod e = 0"
+      ],
+      "correct": 1,
+      "explanation": "L'exposant privé d est calculé tel que e×d mod φ(n) = 1, c'est-à-dire que d est l'inverse modulaire de e modulo φ(n). Cette relation garantit que le déchiffrement M = C^d mod n retrouve correctement le message original chiffré par C = M^e mod n."
+    },
+    {
+      "id": "ch3_001",
+      "chapter": "CH3",
+      "theme": "Fonction à sens unique",
+      "question": "Qu'est-ce qu'une fonction à sens unique ?",
+      "options": [
+        "Une fonction qui ne peut être exécutée qu'une seule fois",
+        "Une fonction facile à calculer mais difficile à inverser",
+        "Une fonction qui ne prend qu'un seul argument",
+        "Une fonction qui produit toujours le même résultat quelle que soit l'entrée"
+      ],
+      "correct": 1,
+      "explanation": "Une fonction à sens unique (one-way function) est une fonction f telle que le calcul de f(x) se fait en temps polynomial, mais pour un y donné, il est impossible en temps raisonnable de trouver x tel que f(x) = y. Ces fonctions sont utilisées en cryptographie asymétrique et dans les fonctions de hachage."
+    },
+    {
+      "id": "ch3_002",
+      "chapter": "CH3",
+      "theme": "Fonction de hachage",
+      "question": "Quelle est la caractéristique principale d'une fonction de hachage cryptographique ?",
+      "options": [
+        "Elle produit une sortie de taille variable",
+        "Elle prend en entrée une donnée de taille arbitraire et produit une empreinte de taille fixe",
+        "Elle peut être inversée avec la bonne clé",
+        "Elle ne fonctionne qu'avec des chaînes de caractères"
+      ],
+      "correct": 1,
+      "explanation": "Une fonction de hachage prend en entrée une donnée de taille arbitraire et produit une empreinte (hash) de taille fixe. Par exemple, SHA-256 produit toujours une empreinte de 256 bits, que l'entrée fasse 1 octet ou 1 Go."
+    },
+    {
+      "id": "ch3_003",
+      "chapter": "CH3",
+      "theme": "Propriétés du hachage",
+      "question": "Que signifie la 'résistance à la collision' pour une fonction de hachage H ?",
+      "options": [
+        "Deux messages identiques produisent des hashs différents",
+        "Il est difficile de trouver deux messages m1 ≠ m2 tels que H(m1) = H(m2)",
+        "Le hash change si on modifie la clé",
+        "Le hash ne peut pas être calculé deux fois de suite"
+      ],
+      "correct": 1,
+      "explanation": "La résistance à la collision signifie qu'il est très difficile de trouver deux messages distincts m1 et m2 tels que H(m1) = H(m2). Si un attaquant pouvait facilement trouver des collisions, il pourrait substituer un document par un autre ayant le même hash."
+    },
+    {
+      "id": "ch3_004",
+      "chapter": "CH3",
+      "theme": "Propriétés du hachage",
+      "question": "Que signifie la 'résistance à la préimage' pour une fonction de hachage H ?",
+      "options": [
+        "Il est impossible de calculer H(m) pour tout message m",
+        "Étant donné un haché h, il est difficile de trouver un message m tel que H(m) = h",
+        "Le haché ne peut pas être stocké en base de données",
+        "La fonction ne peut traiter qu'une seule image à la fois"
+      ],
+      "correct": 1,
+      "explanation": "La résistance à la préimage signifie qu'étant donné un haché h, il est computationnellement infaisable de trouver un message m tel que H(m) = h. C'est ce qui empêche un attaquant de retrouver un mot de passe à partir de son hash (en dehors des attaques par dictionnaire/tables)."
+    },
+    {
+      "id": "ch3_005",
+      "chapter": "CH3",
+      "theme": "Propriétés du hachage",
+      "question": "Laquelle de ces propriétés n'est PAS une propriété attendue d'une fonction de hachage cryptographique ?",
+      "options": [
+        "Compression : facile de calculer le haché quelle que soit la taille",
+        "Déterminisme : même entrée → même sortie",
+        "Réversibilité : on peut retrouver le message à partir du haché",
+        "Résistance à la collision"
+      ],
+      "correct": 2,
+      "explanation": "Une fonction de hachage est justement NON réversible (c'est une fonction à sens unique). Ses propriétés sont : compression, déterminisme, résistance à la préimage (non-réversibilité) et résistance à la collision."
+    },
+    {
+      "id": "ch3_006",
+      "chapter": "CH3",
+      "theme": "Algorithmes de hachage",
+      "question": "Parmi MD5, SHA-1 et SHA-256, lequel produit les empreintes les plus longues ?",
+      "options": [
+        "MD5 (128 bits)",
+        "SHA-1 (160 bits)",
+        "SHA-256 (256 bits)",
+        "Ils produisent tous la même longueur"
+      ],
+      "correct": 2,
+      "explanation": "SHA-256 produit des empreintes de 256 bits (64 caractères hexadécimaux), SHA-1 produit 160 bits (40 caractères hex), et MD5 produit 128 bits (32 caractères hex). Plus l'empreinte est longue, plus la résistance aux collisions est élevée."
+    },
+    {
+      "id": "ch3_007",
+      "chapter": "CH3",
+      "theme": "Stockage de mots de passe",
+      "question": "Pourquoi ne doit-on pas stocker les mots de passe en clair dans une base de données ?",
+      "options": [
+        "Parce que les mots de passe prennent trop de place en mémoire",
+        "Parce qu'en cas de compromission de la base, tous les mots de passe sont directement exposés",
+        "Parce que la loi interdit de stocker des chaînes de caractères",
+        "Parce que les mots de passe en clair ralentissent les requêtes"
+      ],
+      "correct": 1,
+      "explanation": "Si la base de données est compromise (piratage, fuite), tous les mots de passe stockés en clair sont immédiatement exploitables. En stockant le hash du mot de passe, même en cas de fuite, l'attaquant n'obtient que les empreintes et doit encore retrouver les mots de passe originaux."
+    },
+    {
+      "id": "ch3_008",
+      "chapter": "CH3",
+      "theme": "Stockage de mots de passe",
+      "question": "Comment authentifie-t-on un utilisateur quand les mots de passe sont stockés sous forme de hash ?",
+      "options": [
+        "On déchiffre le hash stocké et on le compare au mot de passe saisi",
+        "On hache le mot de passe saisi et on compare le résultat au hash stocké",
+        "On envoie le hash au client pour vérification",
+        "On compare directement le mot de passe saisi au hash stocké"
+      ],
+      "correct": 1,
+      "explanation": "Lors de l'authentification, le serveur hache le mot de passe saisi par l'utilisateur avec la même fonction de hachage, puis compare le résultat avec le hash stocké en base. Si les deux hashs sont identiques, le mot de passe est correct. Le hash n'est jamais déchiffré (car il est irréversible)."
+    },
+    {
+      "id": "ch3_009",
+      "chapter": "CH3",
+      "theme": "Table arc-en-ciel",
+      "question": "Qu'est-ce qu'une table arc-en-ciel (rainbow table) ?",
+      "options": [
+        "Un tableau de correspondance entre adresses IP et noms de domaine",
+        "Une structure de données précalculée permettant de retrouver un mot de passe à partir de son hash",
+        "Un algorithme de chiffrement basé sur les couleurs",
+        "Un protocole de vérification d'intégrité"
+      ],
+      "correct": 1,
+      "explanation": "Une table arc-en-ciel est une structure de données qui contient des paires (mot de passe, hash) précalculées. L'attaquant compare les hashs de la base de données compromise avec sa table pour retrouver les mots de passe originaux. Chaque ligne subit une série de réductions et de hachages successifs."
+    },
+    {
+      "id": "ch3_010",
+      "chapter": "CH3",
+      "theme": "Salage",
+      "question": "Comment le salage protège-t-il contre les attaques par table arc-en-ciel ?",
+      "options": [
+        "En chiffrant le hash avec une clé symétrique",
+        "En ajoutant un sel aléatoire unique par utilisateur au mot de passe avant le hachage, rendant les tables précalculées inutiles",
+        "En utilisant un algorithme de hachage plus rapide",
+        "En stockant les mots de passe sur un serveur séparé"
+      ],
+      "correct": 1,
+      "explanation": "Le salage ajoute un sel aléatoire unique pour chaque utilisateur. Le mot de passe est concaténé avec le sel puis haché. Ainsi, même si deux utilisateurs ont le même mot de passe, leurs hashs seront différents. Les tables arc-en-ciel précalculées deviennent inutiles car il faudrait une table par sel possible."
+    },
+    {
+      "id": "ch3_011",
+      "chapter": "CH3",
+      "theme": "Salage",
+      "question": "Le sel utilisé pour le salage des mots de passe est-il le même pour tous les utilisateurs ?",
+      "options": [
+        "Oui, un seul sel est utilisé pour toute la base",
+        "Non, chaque utilisateur a son propre sel aléatoire",
+        "Le sel n'est utilisé qu'une fois puis supprimé",
+        "Le sel est dérivé du nom d'utilisateur"
+      ],
+      "correct": 1,
+      "explanation": "Chaque utilisateur a son propre sel aléatoire (une suite de bits aléatoire). Le sel est stocké avec le hash dans la base de données (souvent sous la forme sel:hash). Si un seul sel était partagé, tous les utilisateurs avec le même mot de passe auraient le même hash, ce qui annulerait la protection."
+    },
+    {
+      "id": "ch3_012",
+      "chapter": "CH3",
+      "theme": "Salage",
+      "question": "Dans l'exemple du cours, que donne le hachage SHA-256 du mot de passe salé 'motdepasseabc123' ?",
+      "options": [
+        "Le même hash que 'motdepasse' sans sel",
+        "Un hash complètement différent de celui de 'motdepasse' seul",
+        "Un hash identique à celui de 'abc123motdepasse'",
+        "Une erreur car le sel est trop court"
+      ],
+      "correct": 1,
+      "explanation": "Le hash de 'motdepasseabc123' est complètement différent de celui de 'motdepasse' seul. C'est l'effet avalanche : la moindre modification de l'entrée (ici l'ajout du sel 'abc123') produit un hash radicalement différent. C'est ce qui rend les tables arc-en-ciel inefficaces."
+    },
+    {
+      "id": "ch3_013",
+      "chapter": "CH3",
+      "theme": "Intégrité",
+      "question": "Comment utilise-t-on les fonctions de hachage pour vérifier l'intégrité d'un fichier ?",
+      "options": [
+        "On chiffre le fichier avec le hash",
+        "On calcule une somme de contrôle (checksum) du fichier et on la compare après transmission",
+        "On ajoute le hash au nom du fichier",
+        "On compresse le fichier avec la fonction de hachage"
+      ],
+      "correct": 1,
+      "explanation": "On calcule le hash (somme de contrôle) d'un fichier avant et après transmission. Si les deux hashs sont identiques, le fichier n'a pas été altéré. La moindre modification, même d'un seul bit, produit un hash complètement différent, permettant de détecter toute altération."
+    },
+    {
+      "id": "ch3_014",
+      "chapter": "CH3",
+      "theme": "Intégrité",
+      "question": "Que se passe-t-il si on modifie un seul caractère d'un fichier et qu'on recalcule son hash ?",
+      "options": [
+        "Le hash change d'un seul caractère aussi",
+        "Le hash ne change pas pour des modifications mineures",
+        "Le hash change complètement (effet avalanche)",
+        "Le hash devient invalide et ne peut plus être calculé"
+      ],
+      "correct": 2,
+      "explanation": "C'est l'effet avalanche : la moindre modification de l'entrée (même un seul bit) produit un hash radicalement différent. C'est une propriété fondamentale des fonctions de hachage cryptographiques qui permet de détecter la moindre altération d'un fichier."
+    },
+    {
+      "id": "ch3_015",
+      "chapter": "CH3",
+      "theme": "Algorithmes de hachage",
+      "question": "Quelle commande OpenSSL génère un hash SHA-256 d'un message ?",
+      "options": [
+        "openssl enc -sha256",
+        "echo -n \"message\" | openssl dgst -sha256",
+        "openssl genrsa -sha256",
+        "openssl rand -sha256"
+      ],
+      "correct": 1,
+      "explanation": "La commande 'echo -n \"message\" | openssl dgst -sha256' calcule le hash SHA-256 du message. L'option -n de echo évite d'ajouter un saut de ligne. On peut aussi utiliser -md5 ou -sha1 pour d'autres algorithmes."
+    },
+    {
+      "id": "ch3_016",
+      "chapter": "CH3",
+      "theme": "Fonction à sens unique",
+      "question": "Quand les fonctions à sens unique ont-elles été introduites ?",
+      "options": [
+        "Dans les années 1950",
+        "Au milieu des années 1970",
+        "Dans les années 1990",
+        "Au début des années 2000"
+      ],
+      "correct": 1,
+      "explanation": "Les fonctions à sens unique ont été introduites au milieu des années 1970 et sont un des piliers de la cryptographie moderne. Elles sont utilisées en cryptographie asymétrique (RSA, Diffie-Hellman) et dans les fonctions de hachage."
+    },
+    {
+      "id": "ch3_017",
+      "chapter": "CH3",
+      "theme": "Table arc-en-ciel",
+      "question": "Comment fonctionne une attaque par table arc-en-ciel ?",
+      "options": [
+        "On intercepte le trafic réseau pour capturer les mots de passe",
+        "On précalcule les hashs de mots de passe courants et on les compare aux empreintes stockées dans la base",
+        "On force brute le serveur avec des milliers de tentatives de connexion",
+        "On exploite une faille XSS pour voler les cookies de session"
+      ],
+      "correct": 1,
+      "explanation": "L'attaque par table arc-en-ciel consiste à précalculer des tables de hachage pour des mots de passe courants, puis à comparer les empreintes stockées dans la base compromise avec ces tables précalculées. Chaque ligne de la table contient un mot de passe de départ et une empreinte d'arrivée, avec des réductions et hachages successifs intermédiaires."
+    },
+    {
+      "id": "ch3_018",
+      "chapter": "CH3",
+      "theme": "Propriétés du hachage",
+      "question": "Pourquoi le déterminisme est-il une propriété essentielle d'une fonction de hachage ?",
+      "options": [
+        "Pour que le hash soit toujours de longueur paire",
+        "Pour que le même message produise toujours le même hash, permettant la comparaison",
+        "Pour que le hash puisse être inversé de manière déterministe",
+        "Pour garantir que le hash est unique pour chaque message"
+      ],
+      "correct": 1,
+      "explanation": "Le déterminisme garantit que pour un même message m, le haché H(m) sera toujours identique. C'est indispensable pour la vérification des mots de passe (comparer le hash calculé au hash stocké) et pour la vérification d'intégrité (comparer les checksums)."
+    },
+    {
+      "id": "ch3_019",
+      "chapter": "CH3",
+      "theme": "Salage",
+      "question": "Quelle commande OpenSSL permet de générer un sel aléatoire de 8 octets ?",
+      "options": [
+        "openssl dgst -rand 8",
+        "openssl rand -hex 8",
+        "openssl enc -salt 8",
+        "openssl genrsa 8"
+      ],
+      "correct": 1,
+      "explanation": "La commande 'openssl rand -hex 8' génère 8 octets aléatoires et les affiche en hexadécimal (soit 16 caractères hexadécimaux). Ce sel est ensuite concaténé au mot de passe avant le hachage pour le salage."
+    },
+    {
+      "id": "ch3_020",
+      "chapter": "CH3",
+      "theme": "Comparaison hachage/chiffrement",
+      "question": "Quelle est la différence fondamentale entre le hachage et le chiffrement ?",
+      "options": [
+        "Le hachage est plus rapide que le chiffrement",
+        "Le hachage est irréversible (pas de clé pour inverser), le chiffrement est réversible avec la bonne clé",
+        "Le chiffrement produit une sortie de taille fixe, le hachage de taille variable",
+        "Le hachage nécessite une clé, le chiffrement non"
+      ],
+      "correct": 1,
+      "explanation": "Le hachage est une fonction à sens unique : on ne peut pas retrouver le message original à partir du hash (il n'existe pas de clé de déchiffrement). Le chiffrement est réversible : avec la bonne clé, on peut déchiffrer le message. C'est pourquoi on hache les mots de passe (pas besoin de les retrouver) et on chiffre les messages (besoin de les lire)."
+    },
+    {
+      "id": "ch4_001",
+      "chapter": "CH4",
+      "theme": "Principe général",
+      "question": "Qu'est-ce qu'un code correcteur d'erreurs ?",
+      "options": [
+        "Un algorithme de chiffrement",
+        "Un ensemble de règles algorithmiques pour détecter et corriger les erreurs de transmission",
+        "Un protocole de routage réseau",
+        "Un programme qui corrige les bugs dans le code source"
+      ],
+      "correct": 1,
+      "explanation": "Un code correcteur d'erreurs est un ensemble de règles algorithmiques utilisé pour détecter et corriger les erreurs de transmission dans les données numériques. Par exemple, les paquets IP utilisent une somme de contrôle pour la détection et TCP utilise la retransmission pour la correction."
+    },
+    {
+      "id": "ch4_002",
+      "chapter": "CH4",
+      "theme": "Principe général",
+      "question": "Comment les erreurs de transmission sont-elles corrigées dans le protocole TCP ?",
+      "options": [
+        "Par un code correcteur de Hamming",
+        "Par une retransmission du paquet",
+        "Par un algorithme de chiffrement",
+        "Par un bit de parité"
+      ],
+      "correct": 1,
+      "explanation": "Dans TCP, la détection d'erreurs est réalisée via une somme de contrôle (checksum) incluse dans chaque paquet. Si une erreur est détectée, la correction se fait par retransmission du paquet. C'est un mécanisme de détection + retransmission, pas de correction au niveau du code."
+    },
+    {
+      "id": "ch4_003",
+      "chapter": "CH4",
+      "theme": "Propriétés",
+      "question": "Quelles sont les trois propriétés attendues d'un bon code détecteur/correcteur d'erreurs ?",
+      "options": [
+        "Rapidité, confidentialité, intégrité",
+        "Bon rendement, bonne capacité de détection/correction, procédure simple et rapide",
+        "Grande clé, résistance aux collisions, déterminisme",
+        "Chiffrement, déchiffrement, signature"
+      ],
+      "correct": 1,
+      "explanation": "Un bon code doit avoir : (1) un bon rendement (ratio bits d'information / bits codés élevé), (2) une bonne capacité de détection et correction d'erreurs, (3) une procédure de codage/décodage suffisamment simple et rapide. Le défi est de maximiser la correction tout en minimisant la redondance ajoutée."
+    },
+    {
+      "id": "ch4_004",
+      "chapter": "CH4",
+      "theme": "Propriétés",
+      "question": "Qu'est-ce que le rendement (taux de codage) d'un code correcteur d'erreurs ?",
+      "options": [
+        "Le nombre d'erreurs qu'il peut corriger",
+        "Le ratio entre le nombre de bits d'information et le nombre total de bits codés",
+        "La vitesse de transmission en bits/seconde",
+        "Le nombre de bits de parité ajoutés"
+      ],
+      "correct": 1,
+      "explanation": "Le rendement est le ratio bits d'information / bits codés. Un rendement proche de 1 signifie peu de redondance ajoutée (mais moins de capacité de correction). Le problème fondamental est de construire des codes qui détectent et corrigent le plus d'erreurs possible tout en allongeant le moins possible les messages."
+    },
+    {
+      "id": "ch4_005",
+      "chapter": "CH4",
+      "theme": "Code de parité",
+      "question": "Comment fonctionne le code de parité paire ?",
+      "options": [
+        "On ajoute un bit pour que le nombre total de bits à 1 soit pair",
+        "On ajoute un bit pour que le nombre total de bits à 1 soit impair",
+        "On double chaque bit du message",
+        "On ajoute un checksum de 8 bits"
       ],
       "correct": 0,
-      "explanation": "Groupes de sécurité : servent à attribuer des permissions sur les ressources (NTFS, partages, imprimantes) — ils peuvent figurer dans les ACL. Groupes de distribution : uniquement pour les listes de diffusion email — ils NE peuvent PAS être utilisés dans les ACL de sécurité."
+      "explanation": "En parité paire, on ajoute un bit de parité au mot binaire de sorte que le nombre total de bits à 1 (données + bit de parité) soit pair. Par exemple, 'A' = 1000001 a deux bits à 1 (déjà pair), donc le bit de parité est 1 → 1 1000001. 'C' = 1000011 a trois bits à 1 (impair), donc le bit de parité est 0 → 0 1000011."
     },
     {
-      "id": "cm1_016",
-      "chapter": "CM1",
-      "theme": "Architecture AD",
-      "question": "Qu'est-ce qu'une GPO (Group Policy Object) dans Active Directory ?",
+      "id": "ch4_006",
+      "chapter": "CH4",
+      "theme": "Code de parité",
+      "question": "Quel est le principal inconvénient du code de parité ?",
       "options": [
-        "Un objet qui définit les permissions d'accès aux ressources partagées",
-        "Un ensemble de règles et paramètres de configuration appliqués automatiquement aux utilisateurs et ordinateurs d'une OU",
-        "Un protocole de sauvegarde automatique des paramètres AD",
-        "Un certificat numérique pour les communications sécurisées dans le domaine"
+        "Il est trop lent à calculer",
+        "Il ne permet pas la correction d'erreurs et ne détecte pas les erreurs en nombre pair",
+        "Il nécessite une clé de chiffrement",
+        "Il ne fonctionne qu'avec l'ASCII"
       ],
       "correct": 1,
-      "explanation": "Une GPO est un ensemble de paramètres (sécurité, bureau, logiciels, etc.) qui s'appliquent automatiquement aux utilisateurs et/ou ordinateurs d'une OU. Elles permettent une administration centralisée : imposer des mots de passe forts, désactiver le panneau de configuration, déployer des logiciels, configurer le pare-feu Windows, etc."
+      "explanation": "Le code de parité a deux inconvénients majeurs : (1) il ne permet que la détection, pas la correction des erreurs, et (2) il est inefficace quand un nombre pair de bits sont altérés, car la parité reste inchangée. Par exemple, si 2 bits sont inversés, le nombre de 1 change de ±2, donc la parité reste la même."
     },
     {
-      "id": "cm1_017",
-      "chapter": "CM1",
-      "theme": "Architecture AD",
-      "question": "Qu'est-ce qu'une relation d'approbation transitive dans AD ?",
+      "id": "ch4_007",
+      "chapter": "CH4",
+      "theme": "Code de parité",
+      "question": "En parité paire, quel bit de parité ajoute-t-on au caractère 'A' (1000001) ?",
       "options": [
-        "Une relation qui expire automatiquement après 30 jours",
-        "Si domaine A approuve B et B approuve C, alors A approuve implicitement C",
-        "Une relation qui fonctionne dans les deux sens simultanément (bidirectionnelle)",
-        "Une relation limitée aux domaines d'une même forêt, ne fonctionnant pas entre forêts"
-      ],
-      "correct": 1,
-      "explanation": "La transitivité : si A→B et B→C, alors A→C implicitement. À distinguer de la bidirectionnalité (même relation, les deux sens). Dans une forêt AD, toutes les approbations entre domaines sont transitives et bidirectionnelles par défaut. Entre forêts, les approbations externes ne sont pas transitives."
-    },
-    {
-      "id": "cm1_018",
-      "chapter": "CM1",
-      "theme": "Architecture AD",
-      "question": "Qu'est-ce que le samAccountName dans Active Directory ?",
-      "options": [
-        "L'identifiant unique global (GUID) de l'objet dans tout l'annuaire",
-        "Le nom de connexion Windows de l'utilisateur, au format DOMAINE\\utilisateur",
-        "Le chemin complet (DN) de l'objet dans l'arborescence LDAP",
-        "L'identifiant de sécurité (SID) unique de l'objet"
-      ],
-      "correct": 1,
-      "explanation": "Le samAccountName est le nom de connexion compatible SAM (Security Account Manager), utilisé pour l'authentification Windows au format DOMAINE\\utilisateur (ex: IUTVANNES\\john.smith). À distinguer du UserPrincipalName (UPN, format email : john.smith@iutvannes.bzh) et de l'ObjectSID (identifiant de sécurité unique)."
-    },
-    {
-      "id": "cm1_019",
-      "chapter": "CM1",
-      "theme": "Durcissement AD",
-      "question": "Pourquoi les comptes dormants (non utilisés) représentent-ils un risque de sécurité ?",
-      "options": [
-        "Ils consomment des licences Windows inutilement",
-        "Ils peuvent avoir des mots de passe faibles/par défaut et leur utilisation par un attaquant passe inaperçue",
-        "Ils provoquent des conflits de réplication entre contrôleurs de domaine",
-        "Ils empêchent la mise à jour des GPO"
-      ],
-      "correct": 1,
-      "explanation": "Les comptes dormants représentent deux risques : des mots de passe souvent faibles ou par défaut (jamais changés), et une utilisation qui passe inaperçue puisque personne ne surveille leur activité. Un attaquant peut les exploiter pour se déplacer latéralement sans alerte. Recommandation : désactiver après X jours d'inactivité, auditer régulièrement."
-    },
-    {
-      "id": "cm1_020",
-      "chapter": "CM1",
-      "theme": "Durcissement AD",
-      "question": "Pourquoi les membres non légitimes dans les groupes Domain Admins / Schema Admins sont-ils un risque critique ?",
-      "options": [
-        "Ces groupes consomment plus de ressources CPU sur le DC",
-        "L'exposition de droits étendus à des comptes non nécessaires augmente massivement la surface d'attaque — un seul compte compromis suffit",
-        "Ces groupes ne peuvent avoir qu'un maximum de 10 membres",
-        "Les membres de ces groupes ne peuvent pas être auditées dans les journaux"
-      ],
-      "correct": 1,
-      "explanation": "Le principe du moindre privilège : chaque compte ne doit avoir que les droits strictement nécessaires. Des comptes ordinaires dans Domain Admins signifient que compromettre n'importe lequel donne le contrôle total du domaine. Recommandation : auditer régulièrement les membres des groupes privilégiés, séparer les comptes admin des comptes utilisateurs standards."
-    },
-    {
-      "id": "cm2_001",
-      "chapter": "CM2",
-      "theme": "Menaces réseau",
-      "question": "Qu'est-ce qu'une attaque Man-in-the-Middle (MITM) ?",
-      "options": [
-        "Inonder un serveur de requêtes pour le rendre indisponible",
-        "Se placer entre deux parties communicantes pour intercepter et potentiellement modifier les échanges à leur insu",
-        "Scanner les ports d'un serveur pour détecter les services exposés",
-        "Exploiter une faille SQL dans une application web"
-      ],
-      "correct": 1,
-      "explanation": "Dans une attaque MITM, l'attaquant s'interpose dans la communication : la victime A croit parler à B, et vice versa. L'attaquant peut écouter (sniffing), modifier les données, ou injecter du contenu malveillant. Techniques : ARP spoofing, DNS spoofing, SSL stripping. Protection : chiffrement de bout en bout (TLS), HSTS, vérification des certificats."
-    },
-    {
-      "id": "cm2_002",
-      "chapter": "CM2",
-      "theme": "Protocoles sécurisés",
-      "question": "Lors du handshake TLS, quel est le rôle de la cryptographie asymétrique ?",
-      "options": [
-        "Chiffrer toutes les données de la session HTTP",
-        "Négocier et échanger de manière sécurisée une clé de session symétrique",
-        "Authentifier le client auprès du serveur",
-        "Vérifier l'intégrité de chaque paquet TCP"
-      ],
-      "correct": 1,
-      "explanation": "TLS utilise la crypto asymétrique UNIQUEMENT pour le handshake : authentifier le serveur (certificat) et échanger de façon sécurisée une clé de session symétrique (via échange Diffie-Hellman ou RSA). Ensuite, toute la session est chiffrée avec la clé symétrique, beaucoup plus rapide. C'est le meilleur des deux mondes : sécurité de l'asymétrique, performance du symétrique."
-    },
-    {
-      "id": "cm2_003",
-      "chapter": "CM2",
-      "theme": "Protocoles sécurisés",
-      "question": "Quelle est la différence entre AH et ESP dans IPSec ?",
-      "options": [
-        "AH chiffre et authentifie ; ESP authentifie uniquement",
-        "AH assure l'intégrité/authentification SANS chiffrement ; ESP assure l'intégrité/authentification ET le chiffrement",
-        "AH est pour IPv4 ; ESP est pour IPv6 uniquement",
-        "AH fonctionne en mode tunnel ; ESP fonctionne en mode transport"
-      ],
-      "correct": 1,
-      "explanation": "AH (Authentication Header) : assure l'intégrité et l'authentification — mais PAS la confidentialité (pas de chiffrement des données). On voit le contenu des paquets mais on est sûr qu'ils ne sont pas modifiés. ESP (Encapsulating Security Payload) : assure AUSSI le chiffrement en plus de l'intégrité et de l'authentification. ESP est le plus utilisé car il offre la confidentialité."
-    },
-    {
-      "id": "cm2_004",
-      "chapter": "CM2",
-      "theme": "Protocoles sécurisés",
-      "question": "Quelle est la différence entre mode transport et mode tunnel dans IPSec ?",
-      "options": [
-        "Transport = chiffre l'en-tête IP et le payload ; Tunnel = chiffre uniquement le payload",
-        "Transport = protège le payload (communication hôte-à-hôte) ; Tunnel = encapsule tout le paquet IP (VPN site-à-site)",
-        "Transport est utilisé sur Internet ; Tunnel est utilisé uniquement sur LAN",
-        "Transport utilise AH ; Tunnel utilise ESP"
-      ],
-      "correct": 1,
-      "explanation": "Mode transport : seul le contenu (payload) est protégé, l'en-tête IP original reste visible. Utilisé pour communications bout-en-bout entre deux hôtes. Mode tunnel : tout le paquet IP original est encapsulé dans un nouveau paquet avec un nouvel en-tête. Utilisé pour VPN site-à-site (les passerelles encapsulent/désencapsulent). Mode tunnel est plus courant pour les VPN d'entreprise."
-    },
-    {
-      "id": "cm2_005",
-      "chapter": "CM2",
-      "theme": "Protocoles sécurisés",
-      "question": "Comment SSH assure-t-il une connexion sécurisée ?",
-      "options": [
-        "SSH chiffre uniquement le mot de passe, la session reste en clair",
-        "SSH utilise un certificat SSL/TLS comme HTTPS",
-        "SSH utilise la crypto asymétrique pour l'authentification + échange de clé de session, puis chiffre toute la session avec cette clé symétrique",
-        "SSH est identique à Telnet mais utilise le port 22"
-      ],
-      "correct": 2,
-      "explanation": "SSH : 1) Échange de clés Diffie-Hellman pour établir une clé de session symétrique partagée de façon sécurisée. 2) Authentification du serveur (clé publique hôte) et du client (password ou paire de clés). 3) Toute la session est chiffrée avec la clé symétrique. Contrairement à Telnet qui envoie tout en clair (y compris le mot de passe)."
-    },
-    {
-      "id": "cm2_006",
-      "chapter": "CM2",
-      "theme": "Pare-feu",
-      "question": "Quelle est la principale différence entre un pare-feu stateful et un filtrage de paquets simple (stateless) ?",
-      "options": [
-        "Le stateful est plus rapide car il inspecte moins de données",
-        "Le stateful maintient une table d'état des connexions TCP et peut vérifier la légitimité de chaque paquet ; le stateless traite chaque paquet indépendamment",
-        "Le stateful ne peut filtrer que TCP, pas UDP",
-        "Le stateful est uniquement utilisable en mode inline, pas en mode passif"
-      ],
-      "correct": 1,
-      "explanation": "Filtrage stateless : chaque paquet est examiné indépendamment selon des règles IP/port. Peut être contourné par des paquets forgés. Filtrage stateful : maintient une table d'état des connexions TCP. Vérifie que chaque paquet appartient à une connexion établie légitime et détecte les anomalies (ex: TCP RST en dehors d'une connexion). Bien plus robuste contre les attaques de reconstitution."
-    },
-    {
-      "id": "cm2_007",
-      "chapter": "CM2",
-      "theme": "IDS/IPS",
-      "question": "Quelle est la différence fondamentale entre IDS et IPS ?",
-      "options": [
-        "IDS détecte les intrusions réseau ; IPS détecte les intrusions sur les hôtes",
-        "IDS surveille et alerte passivement sans bloquer ; IPS est en ligne et bloque activement le trafic malveillant",
-        "IDS fonctionne par signature ; IPS fonctionne par analyse comportementale",
-        "IDS est hardware ; IPS est software"
-      ],
-      "correct": 1,
-      "explanation": "IDS (Intrusion Detection System) : mode passif, surveille une copie du trafic, détecte et alerte, ne peut pas bloquer. IPS (Intrusion Prevention System) : mode inline (positionné dans le flux), détecte ET bloque en temps réel. L'IPS peut perturber le réseau si mal configuré (faux positifs bloquants). Souvent associé à iptables/NFQ (ex: Snort en mode IPS avec NFQUEUE)."
-    },
-    {
-      "id": "cm2_008",
-      "chapter": "CM2",
-      "theme": "IDS/IPS",
-      "question": "Quel est l'avantage principal de la détection par anomalie sur la détection par signature ?",
-      "options": [
-        "Elle génère moins de faux positifs que la détection par signature",
-        "Elle peut détecter des attaques inconnues (zero-day) que les signatures ne couvrent pas encore",
-        "Elle est plus rapide car elle n'a pas besoin de base de données de signatures",
-        "Elle consomme moins de ressources processeur"
-      ],
-      "correct": 1,
-      "explanation": "Détection par signature : ne détecte que les attaques connues avec une signature existante. Rapide, peu de faux positifs, mais aveugle aux zero-day. Détection par anomalie : établit un profil 'normal' et alerte sur les déviations → peut détecter des attaques inconnues. Inconvénient : plus de faux positifs (difficile de définir ce qui est 'normal'). Les NGFW et SIEM utilisent les deux en combinaison."
-    },
-    {
-      "id": "cm2_009",
-      "chapter": "CM2",
-      "theme": "IDS/IPS",
-      "question": "Quelle est la différence entre NIDS et HIDS ?",
-      "options": [
-        "NIDS = surveille le trafic réseau en analysant les paquets ; HIDS = surveille les activités sur un hôte spécifique (logs, fichiers, processus)",
-        "NIDS = détection par signature uniquement ; HIDS = détection par anomalie uniquement",
-        "NIDS = solution logicielle ; HIDS = équipement réseau dédié",
-        "NIDS = pour les réseaux internes ; HIDS = pour les réseaux exposés à Internet"
+        "1 (car 'A' a un nombre pair de bits à 1)",
+        "0 (car 'A' a un nombre pair de bits à 1)",
+        "1 (car 'A' a un nombre impair de bits à 1)",
+        "0 (car 'A' a un nombre impair de bits à 1)"
       ],
       "correct": 0,
-      "explanation": "NIDS (Network-based IDS) : analyse le trafic réseau en temps réel depuis un point de capture (ex: Snort, Suricata). Voit les attaques réseau. HIDS (Host-based IDS) : installé sur l'hôte, surveille les fichiers système, logs, processus, connexions locales (ex: OSSEC). Complémentaires : le NIDS voit ce qui entre sur le réseau, le HIDS voit ce qui se passe sur la machine."
+      "explanation": "'A' en ASCII = 1000001, qui contient 2 bits à 1 (déjà pair). Cependant, d'après l'exemple du cours, 'A' → 1 1000001 en parité impaire. Pour la parité paire, on ajouterait 0 pour garder le nombre de 1 pair. Attention : l'exemple du cours montre que 'A' = 1 1000001 correspond à la parité impaire (3 bits à 1 au total, qui est impair)."
     },
     {
-      "id": "cm2_010",
-      "chapter": "CM2",
-      "theme": "Supervision réseau",
-      "question": "Quel protocole de supervision réseau permet de collecter automatiquement des informations sur les équipements ?",
+      "id": "ch4_008",
+      "chapter": "CH4",
+      "theme": "Code de parité",
+      "question": "Que se passe-t-il si 2 bits sont altérés dans un message protégé par un code de parité paire ?",
       "options": [
-        "LDAP",
-        "SNMP (Simple Network Management Protocol)",
-        "ICMP",
-        "Syslog"
-      ],
-      "correct": 1,
-      "explanation": "SNMP (Simple Network Management Protocol) : les équipements réseau (routeurs, switchs, serveurs) disposent d'un agent SNMP qui remonte des informations au serveur de supervision (MIB - Management Information Base). Permet de surveiller l'état, les performances, et recevoir des alertes (SNMP Traps). Outils : Nagios, Centreon (basé sur Nagios), Zabbix."
-    },
-    {
-      "id": "cm2_011",
-      "chapter": "CM2",
-      "theme": "Supervision réseau",
-      "question": "Quelle est une limite importante de la supervision réseau à retenir ?",
-      "options": [
-        "La supervision ne fonctionne qu'en IPv4",
-        "Elle ne remplace pas les autres mécanismes de sécurité comme les pare-feux ou IDS/IPS",
-        "Elle nécessite un agent installé sur chaque équipement sans exception",
-        "Elle ne peut surveiller que les équipements Cisco"
-      ],
-      "correct": 1,
-      "explanation": "La supervision réseau a plusieurs limites : génère beaucoup d'alertes à analyser, nécessite configuration et maintenance régulières, consomme des ressources réseau/système — et surtout, elle ne REMPLACE PAS les autres mécanismes de sécurité (pare-feu, IDS/IPS). C'est un outil de visibilité complémentaire, pas une protection en soi."
-    },
-    {
-      "id": "cm2_012",
-      "chapter": "CM2",
-      "theme": "Menaces réseau",
-      "question": "Comment se distingue une attaque DDoS d'une attaque DoS classique ?",
-      "options": [
-        "DDoS cible les serveurs web uniquement ; DoS peut cibler n'importe quel service",
-        "DDoS utilise des milliers de sources distribuées (botnet) pour submerger la cible ; DoS vient d'une seule source",
-        "DDoS chiffre les données de la cible ; DoS sature simplement la bande passante",
-        "DoS est détectable ; DDoS est indétectable"
-      ],
-      "correct": 1,
-      "explanation": "DoS (Denial of Service) : attaque depuis une seule machine — facile à bloquer en blacklistant l'IP source. DDoS (Distributed DoS) : des milliers de machines compromises (botnet) attaquent simultanément — impossible de bloquer toutes les sources. Le trafic légitime est noyé dans le flood. Mitigations : CDN, scrubbing centers, rate limiting, BGP blackholing."
-    },
-    {
-      "id": "cm3_001",
-      "chapter": "CM3",
-      "theme": "Continuité d'activité",
-      "question": "Quelle est la différence fondamentale entre PCA et PRA ?",
-      "options": [
-        "PCA concerne uniquement les données ; PRA concerne l'infrastructure",
-        "PCA vise à maintenir l'activité EN CONTINU pendant un incident ; PRA vise à REPRENDRE l'activité après une interruption",
-        "PCA est requis par la loi ; PRA est optionnel",
-        "PCA s'applique aux grandes entreprises ; PRA aux PME"
-      ],
-      "correct": 1,
-      "explanation": "PCA (Plan de Continuité d'Activité) : mesures préventives pour maintenir les services critiques en fonctionnement même pendant une crise (objectif : zéro interruption ou interruption minimale). PRA (Plan de Reprise d'Activité) : procédures pour REDÉMARRER l'activité après une interruption acceptée (objectif : reprendre le plus vite possible avec une perte de données maîtrisée)."
-    },
-    {
-      "id": "cm3_002",
-      "chapter": "CM3",
-      "theme": "Continuité d'activité",
-      "question": "Pour un e-commerce : RTO = 4h, RPO = 2h. Qu'est-ce que cela signifie concrètement ?",
-      "options": [
-        "Les données sont sauvegardées toutes les 4h et le système redémarre en 2h maximum",
-        "Le système doit être opérationnel en 4h maximum après panne, et on accepte de perdre au maximum 2h de données",
-        "La sauvegarde prend 2h et la restauration prend 4h",
-        "Le système peut être arrêté 4h par semaine pour maintenance, avec un backup toutes les 2h"
-      ],
-      "correct": 1,
-      "explanation": "RTO (Recovery Time Objective) = durée max d'interruption acceptable = 4h ici → le système doit être opérationnel en moins de 4h. RPO (Recovery Point Objective) = perte de données maximale acceptable = 2h ici → les sauvegardes doivent être faites au moins toutes les 2h pour ne perdre au pire que 2h de commandes. Moyen mnémotechnique : RTO = temps de récupération, RPO = point de récupération (dans le temps)."
-    },
-    {
-      "id": "cm3_003",
-      "chapter": "CM3",
-      "theme": "Types de sauvegarde",
-      "question": "Quelle est la différence entre sauvegarde incrémentielle et sauvegarde différentielle ?",
-      "options": [
-        "Incrémentielle = tout depuis la dernière complète ; Différentielle = uniquement ce qui a changé depuis le dernier backup",
-        "Incrémentielle = uniquement les changements depuis le DERNIER backup (quelle qu'il soit) ; Différentielle = tout depuis la dernière sauvegarde COMPLÈTE",
-        "Incrémentielle est plus volumineuse mais plus rapide à restaurer ; Différentielle est plus petite et plus lente",
-        "Incrémentielle ne peut être faite que sur bande magnétique ; Différentielle sur tout support"
-      ],
-      "correct": 1,
-      "explanation": "Incrémentielle : sauvegarde UNIQUEMENT ce qui a changé depuis la DERNIÈRE sauvegarde (qu'elle soit complète ou incrémentielle). Petite taille, rapide à créer. Restauration lente : besoin de la complète + TOUTES les incrémentales. Différentielle : sauvegarde tout depuis la dernière sauvegarde COMPLÈTE. Taille croissante avec le temps. Restauration rapide : complète + dernière différentielle seulement."
-    },
-    {
-      "id": "cm3_004",
-      "chapter": "CM3",
-      "theme": "Types de sauvegarde",
-      "question": "Que signifie la règle 3-2-1 de sauvegarde ?",
-      "options": [
-        "3 sauvegardes par jour, 2 serveurs de sauvegarde, 1 administrateur dédié",
-        "3 copies des données, sur 2 types de supports différents, dont 1 copie hors site",
-        "3 jours de rétention, 2 types de sauvegarde, 1 test de restauration par mois",
-        "3 niveaux (complète/incrémentielle/différentielle), 2 emplacements, 1 responsable"
-      ],
-      "correct": 1,
-      "explanation": "Règle 3-2-1 : 3 copies des données (l'original + 2 sauvegardes), sur 2 types de supports DIFFÉRENTS (ex: disque dur local + cloud ou bande), dont 1 copie stockée HORS SITE (protection contre sinistre physique : incendie, inondation, vol). Protection contre la plupart des scénarios. Complément moderne : règle 3-2-1-1 (+ 1 copie immuable offline)."
-    },
-    {
-      "id": "cm3_005",
-      "chapter": "CM3",
-      "theme": "Types de sauvegarde",
-      "question": "Qu'est-ce qu'une sauvegarde immuable (WORM) et pourquoi est-elle critique face aux ransomwares ?",
-      "options": [
-        "Une sauvegarde chiffrée accessible uniquement par l'administrateur",
-        "Une sauvegarde qui ne peut pas être modifiée ni supprimée pendant une période définie, résistante même si l'attaquant a des droits admin",
-        "Une sauvegarde automatique réalisée sans intervention humaine",
-        "Une sauvegarde stockée dans un datacenter externe certifié ISO 27001"
-      ],
-      "correct": 1,
-      "explanation": "WORM (Write Once Read Many) : les données écrites ne peuvent pas être modifiées ni supprimées pendant une période définie. Crucial car les ransomwares ciblent AUSSI les sauvegardes pour les chiffrer/supprimer. Même un attaquant avec des droits admin ne peut pas supprimer une sauvegarde WORM. Disponible sur baies de stockage modernes (NetApp, Pure Storage) et services cloud (S3 Object Lock, Azure Immutable Storage)."
-    },
-    {
-      "id": "cm3_006",
-      "chapter": "CM3",
-      "theme": "Types de sauvegarde",
-      "question": "Pourquoi la synchronisation (Dropbox, OneDrive) ne remplace-t-elle PAS une vraie sauvegarde ?",
-      "options": [
-        "La synchronisation est trop lente pour les grandes quantités de données",
-        "Si un fichier est chiffré par ransomware ou supprimé, la synchronisation propage immédiatement la version corrompue sur toutes les copies",
-        "La synchronisation ne fonctionne qu'en Wi-Fi",
-        "La synchronisation ne conserve pas plusieurs versions d'un fichier"
-      ],
-      "correct": 1,
-      "explanation": "La synchronisation maintient des copies IDENTIQUES en temps réel. Si un ransomware chiffre vos fichiers, la version chiffrée est immédiatement synchronisée, écrasant les copies 'saines'. Une sauvegarde avec versioning conserve des snapshots à des points dans le temps → restauration possible d'une version antérieure non chiffrée. La synchronisation est de la réplication, pas de la sauvegarde."
-    },
-    {
-      "id": "cm3_007",
-      "chapter": "CM3",
-      "theme": "Sécurisation des échanges",
-      "question": "Parmi les 4 principes de sécurisation des échanges, lequel garantit qu'un message n'a pas été altéré en transit ?",
-      "options": [
-        "Confidentialité",
-        "Authenticité",
-        "Intégrité",
-        "Traçabilité"
+        "L'erreur est détectée et corrigée",
+        "L'erreur est détectée mais pas corrigée",
+        "L'erreur n'est pas détectée car la parité reste inchangée",
+        "Le message est retransmis automatiquement"
       ],
       "correct": 2,
-      "explanation": "Les 4 principes : Confidentialité = seuls les destinataires autorisés lisent (chiffrement). Intégrité = le message n'a pas été modifié (hash/MAC/signature). Authenticité = le message vient bien de l'expéditeur prétendu (signature numérique, certificat). Traçabilité = non-répudiation, on peut prouver qui a envoyé quoi et quand (journalisation + signature). Intégrité ≠ authenticité : un message peut être intègre mais provenir d'un faux expéditeur."
+      "explanation": "Si 2 bits sont altérés, le nombre de bits à 1 change de ±2 (ou 0), donc la parité reste la même. L'erreur passe inaperçue. C'est une limitation fondamentale du code de parité : il ne détecte que les erreurs en nombre impair."
     },
     {
-      "id": "cm4_001",
-      "chapter": "CM4",
-      "theme": "Bonnes pratiques",
-      "question": "Quels sont les principaux risques du partage d'identifiants entre collaborateurs ?",
+      "id": "ch4_009",
+      "chapter": "CH4",
+      "theme": "Principe général",
+      "question": "Pourquoi les données peuvent-elles être altérées lors d'une transmission sur un réseau ?",
       "options": [
-        "Risque d'oublier le mot de passe partagé et de perdre l'accès au compte",
-        "Impossibilité de tracer les actions individuelles, responsabilité diluée, accès persistant même après départ",
-        "Risque de ralentissement si trop d'utilisateurs connectés simultanément",
-        "Non-conformité aux règles de performance informatique de l'entreprise"
+        "Parce que le chiffrement modifie les données",
+        "Parce que le canal de communication n'est pas entièrement fiable",
+        "Parce que les routeurs suppriment des bits aléatoirement",
+        "Parce que les données sont compressées"
       ],
       "correct": 1,
-      "explanation": "Le partage d'identifiants : empêche la traçabilité (qui a fait quoi ?), dilue la responsabilité (tous peuvent nier), et crée des accès fantômes (un ex-employé connaît toujours le mot de passe). C'est une violation fondamentale du principe d'imputabilité. Solution : comptes nominatifs, gestion des accès IAM, désactivation immédiate lors des départs."
+      "explanation": "Une transmission de données sur un canal de communication n'est pas entièrement fiable. Les données, lorsqu'elles circulent, sont susceptibles d'être altérées par du bruit électromagnétique, des interférences, des erreurs matérielles, etc. D'où la nécessité des codes détecteurs/correcteurs d'erreurs."
     },
     {
-      "id": "cm4_002",
-      "chapter": "CM4",
-      "theme": "Ingénierie sociale",
-      "question": "Pourquoi une clé USB trouvée dans un parking peut-elle représenter une cybermenace ?",
+      "id": "ch4_010",
+      "chapter": "CH4",
+      "theme": "Détection vs correction",
+      "question": "Quelle est la différence entre la détection et la correction d'erreurs ?",
       "options": [
-        "Elle peut ralentir le PC ou être incompatible avec le système",
-        "Elle peut contenir des malwares qui s'exécutent automatiquement à la connexion (technique de baiting/appâtage)",
-        "Elle peut contenir des données personnelles d'un tiers",
-        "Elle peut surchauffer le port USB"
+        "La détection identifie qu'une erreur s'est produite, la correction la répare automatiquement",
+        "La détection est logicielle, la correction est matérielle",
+        "La détection utilise le hachage, la correction utilise le chiffrement",
+        "Il n'y a pas de différence, ce sont des synonymes"
+      ],
+      "correct": 0,
+      "explanation": "La détection permet d'identifier qu'une erreur s'est produite (par ex. via un checksum ou un bit de parité). La correction permet de réparer l'erreur sans retransmission (par ex. avec un code de Hamming). Certains codes ne font que détecter (parité), d'autres peuvent aussi corriger."
+    },
+    {
+      "id": "ch4_011",
+      "chapter": "CH4",
+      "theme": "Somme de contrôle",
+      "question": "Comment la somme de contrôle est-elle utilisée pour les paquets IP échangés sur Internet ?",
+      "options": [
+        "Elle chiffre le contenu du paquet",
+        "Elle permet de détecter les erreurs de transmission du paquet",
+        "Elle authentifie l'expéditeur du paquet",
+        "Elle compresse les données du paquet"
       ],
       "correct": 1,
-      "explanation": "L'attaque par 'baiting' : déposer des clés USB piégées dans des endroits stratégiques (parking, couloirs). La curiosité pousse les employés à les brancher. À la connexion : exécution automatique de malwares, keylogger, reverse shell, HID attack (la clé se fait passer pour un clavier et tape des commandes). Règle : ne JAMAIS brancher une clé USB de source inconnue."
+      "explanation": "Pour les paquets IP échangés sur Internet, la somme de contrôle (checksum) est calculée sur le contenu du paquet et incluse dans l'en-tête. Le récepteur recalcule la somme de contrôle et la compare à celle reçue. Si elles diffèrent, le paquet a été altéré et une retransmission est demandée (TCP)."
     },
     {
-      "id": "cm4_003",
-      "chapter": "CM4",
-      "theme": "Bonnes pratiques",
-      "question": "Quel est le principal risque de sécurité lié au BYOD (Bring Your Own Device) en entreprise ?",
+      "id": "ch4_012",
+      "chapter": "CH4",
+      "theme": "Hachage vs parité",
+      "question": "Quelle est la différence entre un code de parité et une fonction de hachage pour détecter les altérations ?",
       "options": [
-        "Les appareils personnels consomment plus d'électricité",
-        "Les employés utilisent des applications non autorisées sur des appareils non sécurisés, créant des vecteurs d'attaque vers le SI de l'entreprise",
-        "Les appareils personnels tombent plus souvent en panne",
-        "Les employés passent trop de temps sur leurs appareils personnels"
+        "Le code de parité est plus fiable que le hachage",
+        "Le code de parité ajoute un seul bit, le hachage produit une empreinte complète détectant toute modification",
+        "Le hachage ne détecte pas les modifications de fichiers",
+        "Le code de parité fonctionne sur les fichiers, le hachage sur les réseaux"
       ],
       "correct": 1,
-      "explanation": "Le BYOD expose le SI : appareils sans antivirus/MAJ (vecteur de malware), connexion à des réseaux WiFi publics non sécurisés, applications personnelles non vérifiées, perte/vol de l'appareil avec données d'entreprise, mélange vie pro/perso. Gouvernance BYOD : charte d'utilisation, MDM (Mobile Device Management), conteneurisation des données pro, politique de wipe à distance."
+      "explanation": "Le code de parité ajoute un seul bit et ne détecte pas les erreurs en nombre pair. Une fonction de hachage produit une empreinte complète (128 à 256+ bits) et détecte la moindre modification grâce à l'effet avalanche. Le hachage est beaucoup plus fiable mais produit une redondance plus importante."
     },
     {
-      "id": "cm4_004",
-      "chapter": "CM4",
-      "theme": "Sensibilisation",
-      "question": "Pourquoi réaliser une simulation de phishing AVANT une campagne de sensibilisation ?",
+      "id": "ch4_013",
+      "chapter": "CH4",
+      "theme": "Principe général",
+      "question": "Quel est le problème central de la théorie des codes correcteurs d'erreurs ?",
       "options": [
-        "Pour identifier et sanctionner les employés les moins vigilants",
-        "Pour établir un état des lieux initial (baseline) et mesurer l'efficacité de la formation après coup",
-        "Pour satisfaire aux exigences légales de la RGPD",
-        "Pour tester les filtres anti-spam du serveur de messagerie"
+        "Trouver la clé de chiffrement la plus courte possible",
+        "Construire des codes qui détectent et corrigent le plus d'erreurs possible tout en allongeant le moins possible les messages",
+        "Minimiser la latence du réseau",
+        "Rendre les codes compatibles avec tous les protocoles"
       ],
       "correct": 1,
-      "explanation": "La simulation avant/après (avec GoPhish par exemple) permet une approche evidence-based : mesurer le % d'employés qui 'mordent à l'hameçon' initialement, puis remesurer après formation. L'objectif est de quantifier l'amélioration du niveau de sensibilisation, pas de sanctionner. Les résultats guident aussi le contenu de la formation (quelles erreurs sont les plus fréquentes ?)."
+      "explanation": "Le problème fondamental est le compromis entre la capacité de correction et la redondance ajoutée : on veut des codes qui détectent et corrigent le plus d'erreurs possible, tout en allongeant le moins possible les messages (bon rendement), et qui soient faciles à décoder."
     },
     {
-      "id": "cm4_005",
-      "chapter": "CM4",
-      "theme": "Sécurité physique",
-      "question": "Dans le contexte de la sécurité physique, qu'est-ce que le 'tailgating' (ou piggybacking) ?",
+      "id": "ch4_014",
+      "chapter": "CH4",
+      "theme": "Code de parité",
+      "question": "En parité impaire, quel bit de parité ajoute-t-on au caractère 'C' (1000011) ?",
       "options": [
-        "Intercepter des communications WiFi dans les locaux de l'entreprise",
-        "Suivre discrètement un employé autorisé pour franchir une porte sécurisée sans badge",
-        "Utiliser un badge cloné pour accéder à des zones restreintes",
-        "Lire par-dessus l'épaule d'un employé pour voir son écran ou saisie (shoulder surfing)"
+        "1 (pour rendre le nombre de 1 impair)",
+        "0 (le nombre de bits à 1 est déjà impair : 3)",
+        "1 (le nombre de bits à 1 est pair : 2)",
+        "0 (le nombre de bits à 1 est déjà pair)"
       ],
       "correct": 1,
-      "explanation": "Le tailgating : profiter de l'ouverture d'une porte sécurisée par un employé légitime pour s'y faufiler juste derrière. C'est la technique d'intrusion physique la plus simple, qui contourne les badges et contrôles d'accès électroniques. Contre-mesures : sas de sécurité (man-trap), formation des employés à ne pas laisser passer des inconnus, politique de port du badge visible."
+      "explanation": "Le caractère 'C' en ASCII = 1000011, qui contient 3 bits à 1 (nombre impair). En parité impaire, on veut un nombre impair total de bits à 1. Comme c'est déjà le cas, on ajoute 0 comme bit de parité → 0 1000011. C'est l'exemple donné dans le cours."
     },
     {
-      "id": "cm4_006",
-      "chapter": "CM4",
-      "theme": "Bonnes pratiques",
-      "question": "Lors de l'exposition d'un serveur web sur Internet, quelle pratique représente un risque majeur ?",
+      "id": "ch4_015",
+      "chapter": "CH4",
+      "theme": "Code de parité",
+      "question": "Pour des caractères codés en ASCII (7 bits), combien de bits fait le mot transmis avec un code de parité ?",
       "options": [
-        "Utiliser HTTPS au lieu de HTTP",
-        "Laisser des ports/services inutiles ouverts et des identifiants par défaut non changés (mauvaise configuration)",
-        "Configurer un pare-feu applicatif (WAF)",
-        "Mettre à jour régulièrement les composants du serveur"
+        "7 bits",
+        "8 bits",
+        "14 bits",
+        "16 bits"
       ],
       "correct": 1,
-      "explanation": "Un serveur mal configuré expose : services inutiles non désactivés (surface d'attaque élargie), ports ouverts non nécessaires, répertoires web avec listing activé, identifiants par défaut non changés (admin/admin, root/root), versions logicielles non patchées avec CVE connues. Principe : moindre exposition = désactiver TOUT ce qui n'est pas strictement nécessaire. Le scanner Shodan indexe ces serveurs exposés."
-    },
-    {
-      "id": "cm2_013",
-      "chapter": "CM2",
-      "theme": "IDS/IPS",
-      "question": "Quel est le principal inconvénient de la détection par signature (signature-based) dans un IDS/IPS ?",
-      "options": [
-        "Elle génère un taux élevé de faux positifs car elle compare tous les comportements à une norme apprise",
-        "Elle est inefficace contre les attaques zero-day car elles ne possèdent pas encore de signature répertoriée",
-        "Elle consomme davantage de ressources processeur que la détection par anomalie",
-        "Elle ne peut fonctionner que sur les systèmes hôtes et non sur les réseaux"
-      ],
-      "correct": 1,
-      "explanation": "La détection signature-based compare le trafic à une base de données de signatures d'attaques connues. Elle est donc efficace uniquement si l'attaque a déjà été répertoriée. Face à une attaque zero-day (nouvelle, sans signature connue), elle est totalement aveugle. En revanche, c'est la détection par anomalie qui génère un taux élevé de faux positifs, car tout écart par rapport au comportement « normal » appris peut déclencher une alerte."
-    },
-    {
-      "id": "cm2_014",
-      "chapter": "CM2",
-      "theme": "IDS/IPS",
-      "question": "Pourquoi un IDS/IPS peut-il être contourné par un attaquant utilisant le chiffrement ?",
-      "options": [
-        "Les IDS/IPS ne reconnaissent pas le protocole TLS et ignorent ce type de trafic",
-        "L'IDS/IPS ne peut pas inspecter le contenu des paquets chiffrés sans déchiffrement préalable, masquant ainsi le payload malveillant",
-        "Le chiffrement ralentit tellement le trafic que l'IDS/IPS ne peut pas suivre le débit réseau",
-        "Les algorithmes de chiffrement modernes génèrent des patterns identiques aux signatures d'attaques connues"
-      ],
-      "correct": 1,
-      "explanation": "Les IDS/IPS analysent le contenu des paquets pour détecter des signatures ou des comportements anormaux. Si le trafic est chiffré (ex. HTTPS, TLS), le contenu est opaque sans capacité de déchiffrement (SSL inspection). Un attaquant peut donc encapsuler son payload malveillant dans du trafic chiffré pour passer inaperçu. C'est l'une des 4 limites des IDS/IPS citées dans le cours."
-    },
-    {
-      "id": "cm2_015",
-      "chapter": "CM2",
-      "theme": "IDS/IPS",
-      "question": "Parmi les outils suivants, lesquels sont des exemples de NIDS (Network-based IDS) cités dans le cours ?",
-      "options": [
-        "Nagios et Centreon",
-        "Snort et Suricata",
-        "Wireshark et traceroute",
-        "Zabbix et SNMP"
-      ],
-      "correct": 1,
-      "explanation": "Snort et Suricata sont deux exemples de NIDS (Network Intrusion Detection System) cités dans le cours. Ils sont installés sur un segment critique du réseau et surveillent le trafic en contrôlant les paquets pour détecter une activité malveillante ou anormale. Nagios/Centreon/Zabbix sont des outils de supervision réseau (monitoring), et Wireshark est un outil d'analyse de trafic réseau — ces outils n'ont pas de fonction de détection d'intrusion."
-    },
-    {
-      "id": "cm2_016",
-      "chapter": "CM2",
-      "theme": "IDS/IPS",
-      "question": "Sur un réseau à très fort trafic, pourquoi un IDS/IPS peut-il devenir inefficace ?",
-      "options": [
-        "Il sature sa mémoire RAM à cause du stockage des logs et s'arrête automatiquement",
-        "Il peut manquer certains paquets ou ralentir le réseau car il n'arrive pas à analyser tout le trafic en temps réel",
-        "Il génère trop de vraies alertes positives et les administrateurs ne peuvent plus les traiter",
-        "Sa base de signatures ne peut pas être mise à jour pendant les périodes de fort trafic"
-      ],
-      "correct": 1,
-      "explanation": "L'IDS/IPS doit analyser chaque paquet en temps réel. Sur un réseau à fort trafic, cette inspection peut dépasser les capacités de traitement : certains paquets peuvent être manqués (l'attaque n'est pas détectée), ou le délai d'inspection peut ralentir les transmissions légitimes. C'est une limite fondamentale des IDS/IPS en production sur des réseaux à haut débit, citée explicitement dans le cours."
-    },
-    {
-      "id": "cm2_017",
-      "chapter": "CM2",
-      "theme": "IDS/IPS",
-      "question": "Pourquoi la supervision réseau ne remplace-t-elle pas les pare-feux et les IDS/IPS ?",
-      "options": [
-        "Car la supervision est plus coûteuse et réservée aux grandes entreprises",
-        "Car la supervision ne fonctionne qu'en mode passif et ne peut pas analyser les paquets réseau",
-        "Car la supervision surveille la disponibilité et les performances mais ne contrôle pas les accès ni ne détecte les intrusions",
-        "Car les outils de supervision comme Nagios ne supportent pas les protocoles de sécurité modernes"
-      ],
-      "correct": 2,
-      "explanation": "Selon le cours, la supervision réseau « ne remplace pas les autres mécanismes de sécurité comme les pare-feu ou les IDS/IPS ». Son objectif est de surveiller en continu l'état, la disponibilité et les performances des équipements. Elle détecte des pannes ou dégradations de performance, mais ne contrôle pas les accès (rôle du pare-feu) et ne détecte pas les intrusions dans le trafic (rôle de l'IDS/IPS). Ces trois mécanismes sont complémentaires."
-    },
-    {
-      "id": "cm3_008",
-      "chapter": "CM3",
-      "theme": "Continuité d'activité",
-      "question": "Qu'est-ce que le RTO (Recovery Time Objective) ?",
-      "options": [
-        "Le volume maximal de données que l'organisation peut perdre en cas d'incident, mesuré en temps",
-        "La durée maximale admissible pour reprendre une activité après un incident avant d'impacter gravement l'organisation",
-        "Le temps nécessaire pour réaliser une sauvegarde complète de l'infrastructure",
-        "Le délai réglementaire entre deux tests obligatoires du PRA"
-      ],
-      "correct": 1,
-      "explanation": "Le RTO (Recovery Time Objective) est la durée maximale admissible pour reprendre une activité après un incident. La question clé est : « Combien de temps peut-on rester à l'arrêt sans impact inacceptable ? » À ne pas confondre avec le RPO (Recovery Point Objective) qui représente la quantité maximale de données perdables (mesuré en temps) et répond à : « Jusqu'à quel point dans le passé peut-on revenir sans perte critique ? »"
-    },
-    {
-      "id": "cm3_009",
-      "chapter": "CM3",
-      "theme": "Continuité d'activité",
-      "question": "Une entreprise a un RPO de 4h. Un incident survient à 15h00. Quelle est la perte de données maximale acceptable ?",
-      "options": [
-        "Toutes les données depuis le dernier redémarrage des systèmes",
-        "Les données modifiées depuis 11h00 au plus (4h en arrière)",
-        "Aucune perte de données n'est acceptable avec un RPO de 4h",
-        "Les données des 4 dernières sauvegardes incrémentelles"
-      ],
-      "correct": 1,
-      "explanation": "Le RPO de 4h signifie que l'organisation peut tolérer une perte maximale de 4 heures de données. Si un incident survient à 15h00, on peut revenir à l'état du système à 11h00 (15h - 4h) sans dépasser la perte acceptable. En pratique, cela impose que les sauvegardes soient réalisées au moins toutes les 4 heures. Un RPO de 0 signifierait zéro perte de données, ce qui nécessite une réplication en temps réel."
-    },
-    {
-      "id": "cm3_010",
-      "chapter": "CM3",
-      "theme": "Continuité d'activité",
-      "question": "Dans la mise en place d'un PRA/PCA, à quelle étape choisit-on les solutions comme la redondance, le site de secours et les procédures de restauration ?",
-      "options": [
-        "Analyse d'impact métier",
-        "Évaluation des risques et des vulnérabilités",
-        "Définition des stratégies de continuité et de reprise",
-        "Tests et exercices de simulation"
-      ],
-      "correct": 2,
-      "explanation": "Selon le cours, la mise en place d'un PRA/PCA suit 6 étapes dans l'ordre : 1) Analyse d'impact (identifier processus critiques), 2) Évaluation des risques (menaces et vulnérabilités), 3) Définition des stratégies (choisir les solutions : redondance, site de secours, procédures de restauration, sauvegarde), 4) Rédaction et mise en œuvre des plans, 5) Tests et exercices, 6) Maintenance et amélioration continue. Les solutions techniques sont définies à l'étape 3."
-    },
-    {
-      "id": "cm3_011",
-      "chapter": "CM3",
-      "theme": "Types de sauvegarde",
-      "question": "Dans l'exemple du cours (100 Go initiaux, 5 Go de modifications/jour, du lundi au samedi), quel type de sauvegarde consomme le moins d'espace total sur la semaine ?",
-      "options": [
-        "Sauvegarde complète quotidienne (675 Go au total)",
-        "Sauvegarde différentielle (175 Go au total)",
-        "Sauvegarde incrémentielle (125 Go au total)",
-        "Synchronisation en temps réel (100 Go constants)"
-      ],
-      "correct": 2,
-      "explanation": "Selon le tableau du cours : sauvegarde complète quotidienne = 675 Go, différentielle = 175 Go (cumul depuis lundi), incrémentielle = 125 Go (seulement les modifications du jour). L'incrémentielle est la plus économique car elle ne sauvegarde que les fichiers modifiés depuis la dernière sauvegarde (complète ou incrémentielle). Son inconvénient : une restauration plus longue car il faut rejouer toutes les sauvegardes incrémentales depuis la dernière complète."
-    },
-    {
-      "id": "cm3_012",
-      "chapter": "CM3",
-      "theme": "Types de sauvegarde",
-      "question": "Un ransomware chiffre tous les fichiers accessibles en écriture sur le réseau, y compris les sauvegardes classiques. Quelle technologie y résiste spécifiquement ?",
-      "options": [
-        "La sauvegarde différentielle car elle crée une copie distincte chaque semaine",
-        "La synchronisation cloud car les fichiers sont répliqués sur plusieurs datacenters",
-        "La sauvegarde immuable (WORM) car elle ne peut être ni modifiée ni supprimée pendant une période définie",
-        "La sauvegarde incrémentielle car elle conserve uniquement les modifications récentes"
-      ],
-      "correct": 2,
-      "explanation": "Les sauvegardes classiques sont stockées en lecture ET en écriture, ce qui les rend vulnérables aux ransomwares. Les sauvegardes immuables (WORM — Write Once Read Many) ne peuvent pas être modifiées, supprimées, ni chiffrées pendant une période définie. La synchronisation cloud est au contraire dangereuse car les modifications (chiffrement par le ransomware) sont propagées en temps réel sur tous les appareils synchronisés — c'est exactement l'inconvénient de la synchronisation par rapport à une vraie sauvegarde."
-    },
-    {
-      "id": "cm3_013",
-      "chapter": "CM3",
-      "theme": "Continuité d'activité",
-      "question": "Quelles sont les causes d'interruption d'activité d'une organisation selon le cours ?",
-      "options": [
-        "Uniquement les cyberattaques (ransomware, DDoS) et les erreurs humaines",
-        "Cyberattaques, incidents techniques, sinistres physiques et défaillances fournisseurs",
-        "Pannes matérielles, erreurs de configuration et mauvaises pratiques des employés",
-        "Catastrophes naturelles, incendies et actes de malveillance externe uniquement"
-      ],
-      "correct": 1,
-      "explanation": "Le cours identifie 4 grandes catégories de causes d'interruption : 1) Cyberattaques (ransomware, DDoS, compromission), 2) Incidents techniques (panne, défaillance logicielle ou matérielle, erreur humaine), 3) Sinistres physiques (incendie, inondation, catastrophe naturelle, sabotage), 4) Défaillances fournisseurs (rupture de services). Le PRA/PCA doit couvrir toutes ces catégories, pas uniquement les cyberattaques."
-    },
-    {
-      "id": "cm3_014",
-      "chapter": "CM3",
-      "theme": "Sécurisation des échanges",
-      "question": "Un attaquant intercepte la communication entre un client et son serveur et peut à la fois lire ET modifier les données. De quel type d'attaque s'agit-il ?",
-      "options": [
-        "Sniffing — écoute passive du trafic réseau",
-        "Spoofing — usurpation d'identité pour simuler une entité de confiance",
-        "Man-In-The-Middle (MITM) — interception active des communications",
-        "DDoS — saturation du service par des requêtes massives"
-      ],
-      "correct": 2,
-      "explanation": "L'attaque Man-In-The-Middle (MITM) est une interception ACTIVE : l'attaquant se place entre les deux parties et peut lire ET modifier les données en transit, compromettant ainsi la confidentialité ET l'intégrité. Le sniffing est une écoute PASSIVE (lecture seule, sans modification) du trafic non chiffré. Le spoofing est une usurpation d'identité (simuler une entité de confiance). Le DDoS vise uniquement la disponibilité par saturation."
-    },
-    {
-      "id": "cm3_015",
-      "chapter": "CM3",
-      "theme": "Sécurisation des échanges",
-      "question": "Quelle est la différence entre chiffrement symétrique et chiffrement asymétrique ?",
-      "options": [
-        "Le symétrique utilise une clé publique, l'asymétrique utilise deux clés (publique + privée)",
-        "Le symétrique utilise la même clé secrète pour chiffrer et déchiffrer, l'asymétrique utilise une paire clé publique/clé privée",
-        "Le symétrique chiffre les données en transit, l'asymétrique chiffre uniquement les données stockées",
-        "Le symétrique est plus sécurisé mais plus lent, l'asymétrique est plus rapide pour les gros volumes"
-      ],
-      "correct": 1,
-      "explanation": "Le chiffrement symétrique utilise une seule clé secrète partagée pour chiffrer et déchiffrer. Avantage : très rapide, adapté aux gros volumes. Inconvénient : problème de distribution sécurisée de la clé. Le chiffrement asymétrique utilise une paire : clé publique (pour chiffrer) et clé privée (pour déchiffrer). Avantage : sécurisé pour l'authentification, pas de distribution de clé secrète. Inconvénient : plus lent. En pratique, TLS combine les deux : asymétrique pour négocier une clé symétrique de session."
-    },
-    {
-      "id": "cm3_016",
-      "chapter": "CM3",
-      "theme": "Sécurisation des échanges",
-      "question": "Quelle est la différence entre DNS over TLS (DoT) et DNS over HTTPS (DoH) ?",
-      "options": [
-        "DoT chiffre uniquement les réponses DNS, DoH chiffre les requêtes et les réponses",
-        "DoT chiffre les requêtes DNS via TLS sur un port dédié, DoH les encapsule dans des requêtes HTTPS (port 443)",
-        "DoT est utilisé par les résolveurs publics, DoH est réservé aux réseaux d'entreprise",
-        "DoT nécessite un certificat SSL serveur, DoH fonctionne sans certificat"
-      ],
-      "correct": 1,
-      "explanation": "Les deux protocoles chiffrent les requêtes DNS pour éviter l'espionnage et la manipulation. DNS over TLS (DoT) chiffre via TLS sur un port dédié, ce qui le rend identifiable et potentiellement filtrable. DNS over HTTPS (DoH) encapsule les requêtes DNS dans des requêtes HTTPS standard (port 443), les rendant indiscernables du trafic web normal, donc plus difficiles à bloquer. Les deux protègent contre la manipulation DNS et l'écoute réseau."
-    },
-    {
-      "id": "cm3_017",
-      "chapter": "CM3",
-      "theme": "Sécurisation des échanges",
-      "question": "Parmi les cadres réglementaires cités dans le cours, lequel s'applique spécifiquement aux hébergeurs de données de santé en France ?",
-      "options": [
-        "RGPD — Règlement Général sur la Protection des Données",
-        "PCI-DSS — Payment Card Industry Data Security Standard",
-        "HDS — Hébergeurs de Données de Santé",
-        "ISO/IEC 27001 — Système de Management de la Sécurité de l'Information"
-      ],
-      "correct": 2,
-      "explanation": "Selon le tableau des référentiels du cours : HDS (Hébergeurs de Données de Santé) concerne spécifiquement les données de santé, avec comme point clé le chiffrement et l'audit des échanges. Le RGPD concerne les données personnelles (sécurité du traitement), PCI-DSS concerne les données bancaires (protection des données de compte), et ISO/IEC 27001/27002 est un standard international général pour le management de la sécurité de l'information."
-    },
-    {
-      "id": "cm4_007",
-      "chapter": "CM4",
-      "theme": "Bonnes pratiques",
-      "question": "Qu'est-ce que le principe du moindre privilège recommandé dans le cours face au partage d'identifiants ?",
-      "options": [
-        "Utiliser le mot de passe le plus court possible pour que tous les employés puissent le mémoriser",
-        "Accorder à chaque utilisateur uniquement les droits strictement nécessaires à l'exercice de ses fonctions",
-        "Limiter le nombre de comptes administrateurs à une seule personne pour toute l'organisation",
-        "Réduire la durée de vie des sessions actives à 15 minutes pour limiter les risques d'usurpation"
-      ],
-      "correct": 1,
-      "explanation": "Le principe du moindre privilège (least privilege) consiste à n'accorder à chaque utilisateur que les droits nécessaires pour accomplir ses missions, ni plus. Il s'oppose directement au partage de comptes administrateurs qui donnent des droits excessifs à tous. Si un compte est compromis, l'attaquant n'a accès qu'aux ressources autorisées pour ce compte, ce qui limite l'impact de l'intrusion. Ce principe est recommandé avec les comptes individuels et l'audit régulier des droits."
-    },
-    {
-      "id": "cm4_008",
-      "chapter": "CM4",
-      "theme": "Bonnes pratiques",
-      "question": "Un employé quitte l'entreprise. Selon les recommandations du cours, quelle mesure est prioritaire concernant ses accès informatiques ?",
-      "options": [
-        "Changer les mots de passe des comptes partagés auxquels il avait accès dans les 48h",
-        "Archiver ses accès pendant 30 jours avant suppression pour assurer la continuité",
-        "Révoquer immédiatement ses droits d'accès dès son départ",
-        "Transférer ses droits à son remplaçant pour ne pas perdre la productivité"
-      ],
-      "correct": 2,
-      "explanation": "Le cours préconise explicitement la « révocation immédiate des droits d'accès (départ) » comme mesure directe face au partage d'identifiants. Si les accès ne sont pas révoqués immédiatement, un ex-employé peut continuer à accéder aux systèmes (intentionnellement ou non). L'absence de tracabilité dans les comptes partagés rend cette révocation encore plus critique, car on ne sait pas exactement quels accès il possédait. Les comptes individuels facilitent cette révocation ciblée."
-    },
-    {
-      "id": "cm4_009",
-      "chapter": "CM4",
-      "theme": "Bonnes pratiques",
-      "question": "Un employé utilise son ordinateur personnel (non chiffré, sans antivirus à jour) pour accéder aux ressources de l'entreprise via Wi-Fi public. Quelles mesures le cours recommande-t-il ?",
-      "options": [
-        "Interdire formellement tout BYOD et ne distribuer que des équipements d'entreprise certifiés",
-        "Installer un antivirus sur l'ordinateur personnel et le déclarer au service informatique",
-        "Mettre en place une politique BYOD stricte, avec chiffrement obligatoire, VPN et authentification forte (MFA)",
-        "Créer un réseau Wi-Fi invité dédié BYOD sans accès aux ressources internes critiques"
-      ],
-      "correct": 2,
-      "explanation": "Selon le cours, les recommandations BYOD sont : politique BYOD stricte, chiffrement obligatoire des données, utilisation d'un VPN (pour protéger les communications sur Wi-Fi public), authentification forte MFA, et gestion des mises à jour et correctifs. Un ordinateur personnel non géré présente plusieurs risques cumulés : absence de chiffrement (données lisibles si vol), antivirus obsolète (vulnérabilités non corrigées), connexions Wi-Fi public (écoute réseau possible)."
-    },
-    {
-      "id": "cm4_010",
-      "chapter": "CM4",
-      "theme": "Sensibilisation",
-      "question": "Pourquoi organiser une simulation de phishing AVANT la campagne de sensibilisation plutôt qu'après ?",
-      "options": [
-        "Car la législation RGPD impose un audit de vulnérabilité avant toute campagne de formation",
-        "Pour mesurer le niveau de maturité actuel et avoir un exemple concret et parlant pour la sensibilisation",
-        "Car les employés sont moins méfiants avant la formation et cliquent davantage sur les liens",
-        "Pour identifier les employés à risque et les exclure de l'accès aux ressources sensibles"
-      ],
-      "correct": 1,
-      "explanation": "Selon le cours, organiser une simulation de phishing AVANT la sensibilisation sert deux objectifs : analyser les résultats pour évaluer le niveau de maturité actuel, et préparer une restitution globale qui servira d'exemple concret pour la phase de sensibilisation. Un public confronté à ses propres erreurs est plus réceptif. On répète ensuite les simulations APRÈS la sensibilisation pour mesurer l'efficacité du programme et entretenir la vigilance."
-    },
-    {
-      "id": "cm4_011",
-      "chapter": "CM4",
-      "theme": "Sensibilisation",
-      "question": "Pourquoi le cours recommande-t-il de sensibiliser en priorité les directeurs et managers plutôt que l'ensemble du personnel ?",
-      "options": [
-        "Car les managers ont accès à plus de données sensibles et sont donc plus ciblés par les attaques",
-        "Car les collaborateurs suivent l'exemple de leurs responsables, qui légitiment la culture cybersécurité",
-        "Car le budget de sensibilisation est limité et les managers représentent le retour sur investissement maximal",
-        "Car les managers peuvent ensuite former eux-mêmes leurs équipes sans intervention externe"
-      ],
-      "correct": 1,
-      "explanation": "Le cours explique que « les collaborateurs suivent l'exemple de leurs responsables ». Si les managers ne respectent pas les bonnes pratiques (mot de passe simple, clic sur liens suspects), les employés ne les appliqueront pas non plus. La session dédiée aux responsables doit traiter des risques stratégiques et de la responsabilité juridique propres à leurs fonctions, et leur expliquer leur rôle dans la diffusion de la culture cybersécurité au sein de leurs équipes."
-    },
-    {
-      "id": "cm4_012",
-      "chapter": "CM4",
-      "theme": "Sécurité physique",
-      "question": "Dans la situation du cours où un faux technicien installe un dispositif d'interception sur le réseau, quelle recommandation aurait spécifiquement prévenu cet incident ?",
-      "options": [
-        "Installer un pare-feu NGFW pour détecter les connexions anormales sur le réseau interne",
-        "Mettre en place des procédures de vérification d'identité des visiteurs et sensibiliser le personnel d'accueil",
-        "Chiffrer toutes les communications internes avec IPSec pour que l'intercepteur ne puisse rien lire",
-        "Activer la supervision réseau avec SNMP pour détecter les nouveaux équipements connectés"
-      ],
-      "correct": 1,
-      "explanation": "Le scénario du cours décrit un individu qui « prétend être un technicien envoyé pour une maintenance urgente » et que « l'hôtesse le laisse entrer ». Les recommandations spécifiques à l'intrusion physique sont : politique de contrôle d'accès physique stricte, procédures de vérification d'identité des visiteurs, vidéosurveillance, protection physique des accès réseau, et sensibilisation du personnel d'accueil. La faille principale était l'absence de vérification de l'identité du prétendu technicien."
-    },
-    {
-      "id": "cm4_013",
-      "chapter": "CM4",
-      "theme": "Ingénierie sociale",
-      "question": "Selon les métriques de cybermalveillance.gouv.fr citées dans le cours, quelle est la cybermenace la plus fréquente pour les particuliers ?",
-      "options": [
-        "Piratage de compte (18,1%)",
-        "Arnaque au faux support technique (7,3%)",
-        "Hameçonnage/phishing (33,7%)",
-        "Ransomware (12,4%)"
-      ],
-      "correct": 2,
-      "explanation": "Selon les métriques réelles citées dans le cours (cybermalveillance.gouv.fr) : pour les particuliers, l'hameçonnage est n°1 avec 33,7%, suivi du piratage de compte (18,1%) et de l'arnaque au faux support (7,3%). Pour les entreprises : hameçonnage = 20,7%, piratage de compte = 19,6%, ransomware = 12,4%. L'hameçonnage est la première menace pour toutes les catégories, ce qui justifie d'en faire le centre des simulations et campagnes de sensibilisation."
-    },
-    {
-      "id": "cm4_014",
-      "chapter": "CM4",
-      "theme": "Sensibilisation",
-      "question": "Pourquoi le cours recommande-t-il d'utiliser des exemples tirés de la vie privée (vol d'identité, arnaque CPF) dans une campagne de sensibilisation professionnelle ?",
-      "options": [
-        "Car les risques professionnels sont trop confidentiels pour être divulgués lors d'une session collective",
-        "Car les collaborateurs réagissent davantage aux impacts personnels qu'abstraits, facilitant le lien avec les réflexes professionnels",
-        "Car les techniques d'attaque sur la vie personnelle sont différentes et complémentaires de celles ciblant l'entreprise",
-        "Car les exemples d'entreprises concurrentes victimes de cyberattaques sont soumis à la confidentialité"
-      ],
-      "correct": 1,
-      "explanation": "Selon le cours, « les collaborateurs réagissent davantage aux impacts personnels qu'abstraits ». Montrer des cas de vol d'identité, d'arnaques au CPF ou de faux support rend la menace concrète et émotionnellement proche. On peut ensuite établir le lien entre les bons réflexes personnels (ne pas cliquer sur un lien suspect dans un mail personnel) et les réflexes professionnels (même vigilance avec les e-mails professionnels). L'objectif est de créer une culture de vigilance globale."
-    },
-    {
-      "id": "cm4_015",
-      "chapter": "CM4",
-      "theme": "Bonnes pratiques",
-      "question": "Parmi les outils cités dans le cours comme « alternatives concrètes » à proposer lors d'une sensibilisation, lequel est un gestionnaire de mots de passe ?",
-      "options": [
-        "Signal Spam",
-        "GoPhish",
-        "KeePass",
-        "SwordPhish"
-      ],
-      "correct": 2,
-      "explanation": "Selon le cours, il faut toujours proposer des alternatives concrètes, sinon « il ne suffit pas de dire ce qu'il ne faut pas faire ». KeePass est cité comme gestionnaire de mots de passe. Signal Spam permet de signaler les spams/phishing. GoPhish et SwordPhish sont des outils de simulation de campagnes de phishing (pour les équipes sécurité, pas pour les utilisateurs). D'autres alternatives citées : OneDrive for Business (partage sécurisé), VPN, antivirus."
-    },
-    {
-      "id": "cm4_016",
-      "chapter": "CM4",
-      "theme": "Bonnes pratiques",
-      "question": "Face à la situation du cours où une BDD de développement contenant des données clients est accessible publiquement, quelles recommandations le cours propose-t-il ?",
-      "options": [
-        "Utiliser uniquement des bases de données open-source dont le code peut être audité",
-        "Ne jamais exposer de données réelles en développement et restreindre l'accès aux BDD par des pare-feux",
-        "Chiffrer la base de données avec un algorithme AES-256 et ne partager la clé qu'aux développeurs",
-        "Séparer physiquement les serveurs de développement et de production dans des datacenters différents"
-      ],
-      "correct": 1,
-      "explanation": "Selon le cours, les recommandations face à la mauvaise configuration d'un serveur public sont : restreindre l'accès aux BDD via des pare-feux (filtrage IP), ne jamais exposer de données réelles en développement (utiliser des données anonymisées), audits réguliers de configuration et pentests, et chiffrer les données stockées et en transit. Dans ce scénario, deux erreurs se cumulaient : données clients réelles en développement ET absence de restriction d'accès réseau."
+      "explanation": "En ASCII, chaque caractère est codé sur 7 bits. Le code de parité ajoute 1 bit de parité, ce qui donne 8 bits au total (7 bits de données + 1 bit de parité). C'est d'ailleurs l'origine historique de l'octet (8 bits) pour coder un caractère."
     }
   ]
 }

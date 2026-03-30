@@ -117,7 +117,8 @@ Ask the user (optional):
 - Each question must have exactly 4 options (A/B/C/D) or 2 (true/false)
 - `correct` is the 0-based index of the correct option
 - The explanation must be pedagogically useful — explain the concept, not just confirm the answer
-- **Wrong options must be in the same semantic register as the correct answer** — same level of abstraction, same domain vocabulary, similar length. Never use obviously absurd or off-topic distractors.
+- **CRITICAL: Option lengths MUST be balanced** — All 4 options (correct and distractors) MUST be of roughly the exact same length. The correct answer must NOT be noticeably longer, more detailed, or more precise than the others. If the correct answer is a long sentence, the distractors must also be long, well-argued sentences. The student must not be able to guess the correct answer visually.
+- **Distractor quality** — Wrong options must be in the same semantic register as the correct answer: same level of abstraction, same domain vocabulary. Never use obviously absurd or off-topic distractors.
 - Cover all major themes from the chapter
 - Mix difficulty levels: conceptual, application, comparison
 - **Include at least 2 comparison questions per chapter** ("quelle est la différence entre X et Y ?", "lequel de ces protocoles fait X ?")

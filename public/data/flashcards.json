@@ -1,191 +1,142 @@
 [
   {
-    "id": "fc_cm1_01",
-    "chapter": "CM1",
-    "theme": "Architecture AD",
-    "front": "NTDS.dit",
-    "back": "Base de données principale d'Active Directory, stockée sur chaque contrôleur de domaine. Contient TOUS les objets AD (utilisateurs, groupes, ordinateurs) et leurs attributs, y compris les hashes NT des mots de passe. Cible des attaques DCSync et Pass-the-Hash."
+    "id": "fc_ch1_01",
+    "chapter": "CH1",
+    "theme": "Cryptographie symétrique",
+    "front": "Cryptographie symétrique",
+    "back": "Chiffrement utilisant une seule clé partagée K entre l'émetteur et le récepteur.\n\n• C = C(K, M) pour chiffrer\n• M = D(K, C) pour déchiffrer\n• Avantage : rapide (clés 128-256 bits)\n• Inconvénient majeur : nécessite le partage sécurisé de la clé K\n\nExemple : AES, DES"
   },
   {
-    "id": "fc_cm1_02",
-    "chapter": "CM1",
-    "theme": "Architecture AD",
-    "front": "SYSVOL",
-    "back": "Dossier partagé sur tous les DC, contenant les scripts de connexion et les GPO. Répliqué entre DC via DFSR (Distributed File System Replication). À distinguer de NTDS.dit (objets AD) et de NTDS.dit (hashes)."
+    "id": "fc_ch1_02",
+    "chapter": "CH1",
+    "theme": "Chiffrement par flot",
+    "front": "Chiffrement par flot (stream cipher)",
+    "back": "Génère une keystream pseudo-aléatoire à partir de la clé, puis la combine (XOR) bit-à-bit avec le message en clair.\n\n• Très rapide, adapté au temps réel (chiffre à la volée)\n• Nécessite un vecteur d'initialisation (IV) pour éviter de réutiliser la même keystream\n• Exemples : RC4 (WEP), ChaCha20, A5 (GSM), E0 (Bluetooth)\n\nAttention : la sécurité des chiffrements par flot reste faible (WEP cassé en quelques secondes depuis 2006)."
   },
   {
-    "id": "fc_cm1_03",
-    "chapter": "CM1",
-    "theme": "Architecture AD",
-    "front": "Hiérarchie Active Directory",
-    "back": "OU (Organizational Unit) ⊂ Domaine ⊂ Arbre (espace de noms continu) ⊂ Forêt (schéma et catalogue global partagés)\n\nExemple: ou=Compta,dc=iutvannes,dc=bzh est une OU dans le domaine iutvannes.bzh"
+    "id": "fc_ch1_03",
+    "chapter": "CH1",
+    "theme": "AES",
+    "front": "AES (Advanced Encryption Standard)",
+    "back": "Chiffrement par bloc de référence.\n\n• Bloc : 128 bits (16 octets) → matrice 4×4\n• Clés : AES-128 (10 tours), AES-192 (12 tours), AES-256 (14 tours)\n• Chaque tour : XOR sous-clés + substitution non linéaire + décalage lignes + mélange colonnes\n• Très rapide, peu gourmand en mémoire\n• Meilleure attaque connue : gain de seulement 2 bits (2^126 au lieu de 2^128)\n\nAttention : AES n'est pas immunisé contre les attaques sur son implémentation logicielle/matérielle."
   },
   {
-    "id": "fc_cm1_04",
-    "chapter": "CM1",
-    "theme": "Protocoles AD",
-    "front": "3 protocoles principaux d'Active Directory",
-    "back": "• LDAP (port 389) : gestion de l'annuaire, requêtes sur les objets\n• DNS : résolution de noms, localisation des DC et KDC\n• Kerberos (port 88) : authentification et gestion des sessions"
+    "id": "fc_ch1_04",
+    "chapter": "CH1",
+    "theme": "Modes opératoires",
+    "front": "ECB vs CBC (modes opératoires)",
+    "back": "Deux modes de chiffrement par bloc :\n\n• ECB (Electronic Codebook) : chaque bloc chiffré indépendamment → blocs identiques = même chiffré → conserve les patterns visuels (dangereux pour les images)\n\n• CBC (Cipher Block Chaining) : chaque bloc est XORé avec le bloc chiffré précédent avant chiffrement → même bloc en clair → chiffré différent\n  - Le 1er bloc utilise un IV (vecteur d'initialisation)\n  - Masque les patterns → bien plus sûr que ECB"
   },
   {
-    "id": "fc_cm1_05",
-    "chapter": "CM1",
-    "theme": "Protocoles AD",
-    "front": "Mécanisme Kerberos (TGT / TGS)",
-    "back": "1. Client → AS (KDC) : demande TGT (avec identifiant + timestamp chiffré)\n2. AS → Client : TGT chiffré avec clé krbtgt\n3. Client → TGS (KDC) : TGT + SPN du service voulu\n4. TGS → Client : ticket TGS chiffré avec clé du compte de service\n5. Client → Serveur : présente le TGS\n6. Serveur vérifie et autorise l'accès"
+    "id": "fc_ch1_05",
+    "chapter": "CH1",
+    "theme": "Sécurité WEP",
+    "front": "Failles du protocole WEP",
+    "back": "WEP utilise RC4 (chiffrement par flot) avec un IV de 8 bits transmis en clair.\n\nFailles principales :\n• IV transmis en clair dans l'en-tête → l'attaquant connaît une partie de la clé de session\n• Collision d'IV : même IV + même clé = même keystream → si on connaît un message en clair, on récupère la keystream\n• Fragmentation des paquets : permet de récupérer la keystream complète\n\n2001 : clé retrouvée en quelques heures\n2006 : réseau pénétré en quelques secondes"
   },
   {
-    "id": "fc_cm1_06",
-    "chapter": "CM1",
-    "theme": "Protocoles AD",
-    "front": "NTLM challenge/response",
-    "back": "1. Client demande accès au serveur\n2. Serveur envoie un challenge aléatoire de 64 bits\n3. Client chiffre le challenge avec le hash NT de son mdp → réponse\n4. Serveur vérifie (même calcul avec le hash du DC)\n⚠ Vulnérable à : Pass-the-Hash, NTLM Relay, force brute"
+    "id": "fc_ch1_06",
+    "chapter": "CH1",
+    "theme": "Vecteur d'initialisation",
+    "front": "Vecteur d'initialisation (IV)",
+    "back": "Entrée auxiliaire ajoutée au processus de chiffrement pour garantir que le même message chiffré avec la même clé produise un résultat différent à chaque fois.\n\n• Utilisé en chiffrement par flot (pour varier la keystream) et en CBC (pour le premier bloc)\n• Si on réutilise le même IV avec la même clé, la sécurité est compromise\n\nExemple : dans WEP, l'IV est trop court (24 bits), ce qui provoque des collisions et permet de retrouver la keystream."
   },
   {
-    "id": "fc_cm1_07",
-    "chapter": "CM1",
-    "theme": "Attaques AD",
-    "front": "Kerberoasting",
-    "back": "Attaque ciblant les comptes avec SPN.\n\nPrincipe : demander un ticket TGS (chiffré avec le mdp du compte de service) depuis n'importe quel compte du domaine, puis cracker le ticket hors ligne par force brute.\n\nCibles : comptes UTILISATEURS avec SPN (pas machines — mdp 128 chars)\nRem. : MSA/gMSA gèrent automatiquement les mdp → résistants"
+    "id": "fc_ch2_01",
+    "chapter": "CH2",
+    "theme": "Diffie-Hellman",
+    "front": "Protocole Diffie-Hellman",
+    "back": "Protocole d'échange de clé secrète partagée via un canal non sécurisé.\n\n1. Alice et Bob choisissent publiquement p (premier) et g (générateur)\n2. Alice choisit a (secret), envoie A = g^a mod p\n3. Bob choisit b (secret), envoie B = g^b mod p\n4. Clé partagée : K = g^(ab) mod p\n\n• Sécurité : problème du logarithme discret\n• Vulnérable à l'attaque MITM (Man-In-The-Middle)\n• La clé n'est jamais transmise directement"
   },
   {
-    "id": "fc_cm1_08",
-    "chapter": "CM1",
-    "theme": "Attaques AD",
-    "front": "AS-REP Roasting",
-    "back": "Attaque ciblant les comptes avec pré-authentification Kerberos DÉSACTIVÉE.\n\nPrincipe : demander une réponse AS-REP (chiffrée avec le mdp de la cible) sans même avoir de compte valide, puis cracker hors ligne.\n\nDifférence avec Kerberoasting : cible des comptes sans pré-auth (pas de SPN nécessaire)"
+    "id": "fc_ch2_02",
+    "chapter": "CH2",
+    "theme": "RSA",
+    "front": "Algorithme RSA",
+    "back": "Chiffrement asymétrique basé sur la factorisation.\n\n1. Choisir p, q (grands premiers), calculer n = p×q\n2. Calculer φ(n) = (p-1)(q-1)\n3. Choisir e premier avec φ(n)\n4. Calculer d tel que e×d mod φ(n) = 1\n5. Clé publique : (e, n) / Clé privée : (d, n)\n\nChiffrement : C = M^e mod n\nDéchiffrement : M = C^d mod n\n\n• Coûteux en calcul → seulement petites données\n• En pratique : RSA chiffre une clé AES, puis AES chiffre les données"
   },
   {
-    "id": "fc_cm1_09",
-    "chapter": "CM1",
-    "theme": "Attaques AD",
-    "front": "Pass-the-Hash",
-    "back": "Attaque exploitant NTLM.\n\nPrincipe : s'authentifier avec le hash NT directement, sans connaître le mdp en clair.\n\nFonctionne car NTLM accepte le hash comme preuve d'identité. Le hash est récupéré via NTDS.dit (DCSync) ou la mémoire lsass.exe.\n\nOutil : Impacket psexec, CrackMapExec"
+    "id": "fc_ch2_03",
+    "chapter": "CH2",
+    "theme": "Cryptographie asymétrique",
+    "front": "Symétrique vs Asymétrique",
+    "back": "| Critère | Symétrique | Asymétrique |\n|---------|-----------|-------------|\n| Clés | 1 clé partagée (K) | 2 clés : publique + privée |\n| Taille clé | 128-256 bits | 2048+ bits |\n| Vitesse | Très rapide | Lent |\n| Problème | Distribution de la clé | Complexité mathématique |\n| Exemples | AES, DES, RC4 | RSA, Diffie-Hellman |\n\nEn pratique, on combine les deux : asymétrique pour échanger une clé, symétrique pour chiffrer les données."
   },
   {
-    "id": "fc_cm1_10",
-    "chapter": "CM1",
-    "theme": "Attaques AD",
-    "front": "DCSync",
-    "back": "Simulation d'une réplication de DC pour voler tous les hashes.\n\nPrincipe : un compte avec droits de réplication (GetChanges + GetChangesAll) demande une synchro → récupère tous les objets AD y compris les hashes NTLM de tous les utilisateurs.\n\nOutil : Impacket secretsdump\nPré-requis : droits de réplication (souvent via délégation inappropriée ou DnsAdmins)"
+    "id": "fc_ch2_04",
+    "chapter": "CH2",
+    "theme": "OpenSSL",
+    "front": "OpenSSL",
+    "back": "Bibliothèque open-source implémentant SSL/TLS.\n\nFonctionnalités :\n• Chiffrement symétrique et asymétrique (AES, RSA...)\n• Génération de clés privées et publiques\n• Création de certificats X.509 et CSR (Certificate Signing Request)\n• Signature et vérification numériques\n\nCommandes clés :\n• openssl dhparam → paramètres DH\n• openssl genpkey → clés DH\n• openssl enc -aes-256-cbc → chiffrement AES\n• openssl dgst -sha256 → hachage"
   },
   {
-    "id": "fc_cm1_11",
-    "chapter": "CM1",
-    "theme": "Attaques AD",
-    "front": "Golden Ticket vs Silver Ticket",
-    "back": "Golden Ticket : TGT forgé avec le hash de krbtgt → accès TOTAL au domaine pour n'importe quel utilisateur. Compromission totale.\n\nSilver Ticket : TGS forgé avec le hash d'un compte de service → accès à CE service spécifique seulement.\n\nGolden > Silver en termes d'impact."
+    "id": "fc_ch2_05",
+    "chapter": "CH2",
+    "theme": "MITM",
+    "front": "Attaque Man-In-The-Middle (MITM)",
+    "back": "Attaque où l'attaquant s'interpose entre Alice et Bob dans un échange Diffie-Hellman.\n\nFonctionnement :\n1. L'attaquant intercepte A = g^a mod p d'Alice\n2. Il génère sa propre clé et envoie sa valeur à Bob (se fait passer pour Alice)\n3. Il fait de même dans l'autre sens (se fait passer pour Bob auprès d'Alice)\n4. Résultat : il établit une clé partagée avec chacun, peut lire et modifier tous les messages\n\nRemède : utiliser des certificats numériques pour authentifier les parties."
   },
   {
-    "id": "fc_cm1_12",
-    "chapter": "CM1",
-    "theme": "Durcissement AD",
-    "front": "gMSA (group Managed Service Accounts)",
-    "back": "Comptes de service dont le mot de passe est géré automatiquement par l'AD (comme les comptes machines) : complexe, renouvelé régulièrement.\n\nAvantage : résistant au Kerberoasting (mdp impossible à cracker)\nDisponible depuis : Windows Server 2012\nUtilisation : remplacer les comptes utilisateurs avec SPN par des gMSA"
+    "id": "fc_ch2_06",
+    "chapter": "CH2",
+    "theme": "Problèmes mathématiques",
+    "front": "Logarithme discret vs Factorisation",
+    "back": "Deux problèmes mathématiques fondamentaux en cryptographie :\n\n• Logarithme discret (Diffie-Hellman) : connaissant g, p et A = g^a mod p, retrouver a est très difficile\n\n• Factorisation (RSA) : connaissant n = p×q avec p et q très grands premiers, retrouver p et q est très difficile\n\nSi l'un de ces problèmes devenait facile à résoudre (par ex. avec un ordinateur quantique), l'algorithme correspondant serait cassé."
   },
   {
-    "id": "fc_cm1_13",
-    "chapter": "CM1",
-    "theme": "Durcissement AD",
-    "front": "MachineAccountQuota",
-    "back": "Attribut AD définissant le nombre de machines qu'un utilisateur standard peut ajouter au domaine.\n\nDéfaut : 10 (dangereux)\nRecommandé : 0 (seuls les admins peuvent joindre des machines)\n\nRisque : un attaquant crée une machine sous son contrôle pour mener des attaques depuis le domaine"
+    "id": "fc_ch3_01",
+    "chapter": "CH3",
+    "theme": "Fonction de hachage",
+    "front": "Fonction de hachage cryptographique",
+    "back": "Fonction qui prend une entrée de taille arbitraire et produit une empreinte de taille fixe.\n\n4 propriétés essentielles :\n1. Compression : calcul facile quelle que soit la taille\n2. Déterminisme : même entrée → même sortie\n3. Résistance à la préimage : impossible de retrouver m à partir de H(m)\n4. Résistance à la collision : impossible de trouver m1 ≠ m2 avec H(m1) = H(m2)\n\nExemples : MD5 (128 bits), SHA-1 (160 bits), SHA-256 (256 bits)"
   },
   {
-    "id": "fc_cm2_01",
-    "chapter": "CM2",
-    "theme": "Protocoles sécurisés",
-    "front": "TLS Handshake",
-    "back": "1. Client Hello (versions TLS, cipher suites)\n2. Server Hello + certificat (clé publique)\n3. Échange de clé (Diffie-Hellman ou RSA) → clé de session symétrique\n4. Finished (premier message chiffré pour vérification)\n→ Session chiffrée avec clé symétrique\n\nAsymétrique pour l'échange de clé, symétrique pour les données."
+    "id": "fc_ch3_02",
+    "chapter": "CH3",
+    "theme": "Stockage de mots de passe",
+    "front": "Stockage sécurisé des mots de passe",
+    "back": "Ne jamais stocker un mot de passe en clair !\n\nProcessus :\n1. Inscription : mot de passe → hachage → stockage du hash en base\n2. Connexion : mot de passe saisi → hachage → comparaison avec le hash stocké\n\nAvec salage (recommandé) :\n1. Génération d'un sel aléatoire unique par utilisateur\n2. Concaténation : sel + mot de passe\n3. Hachage du tout → stockage de sel:hash\n\nExemple : 'motdepasse' + sel 'abc123' → SHA-256('motdepasseabc123')"
   },
   {
-    "id": "fc_cm2_02",
-    "chapter": "CM2",
-    "theme": "Protocoles sécurisés",
-    "front": "IPSec : AH vs ESP",
-    "back": "AH (Authentication Header) :\n• Intégrité + Authentification\n• PAS de chiffrement\n• On voit le contenu mais on sait qu'il n'a pas été modifié\n\nESP (Encapsulating Security Payload) :\n• Confidentialité (chiffrement) + Intégrité + Authentification\n• Le plus utilisé"
+    "id": "fc_ch3_03",
+    "chapter": "CH3",
+    "theme": "Table arc-en-ciel",
+    "front": "Attaque par table arc-en-ciel",
+    "back": "Structure de données précalculée pour retrouver des mots de passe à partir de leurs hashs.\n\nFonctionnement :\n1. L'attaquant précalcule les hashs de mots de passe courants\n2. Chaque ligne : mot initial → séries de réductions + hachages → empreinte finale\n3. Il compare aux hashs de la base compromise\n\nParade : le salage ! Avec un sel unique par utilisateur, il faudrait une table par sel possible → impraticable.\n\nExemple : les 10 mots de passe les plus courants (123456, password, admin...) sont souvent dans ces tables."
   },
   {
-    "id": "fc_cm2_03",
-    "chapter": "CM2",
-    "theme": "Protocoles sécurisés",
-    "front": "IPSec : mode transport vs mode tunnel",
-    "back": "Mode transport : protège uniquement le payload IP. En-tête IP original visible. Utilisé pour communications hôte-à-hôte.\n\nMode tunnel : encapsule TOUT le paquet IP dans un nouveau paquet. Utilisé pour VPN site-à-site (les passerelles encapsulent/désencapsulent)."
+    "id": "fc_ch3_04",
+    "chapter": "CH3",
+    "theme": "Salage",
+    "front": "Salage des mots de passe",
+    "back": "Technique ajoutant un sel aléatoire unique au mot de passe avant hachage.\n\n• Sel = suite de bits aléatoire (ex: openssl rand -hex 8)\n• Unique par utilisateur\n• Stocké en clair avec le hash (format sel:hash)\n\nPourquoi ça marche :\n• Même mot de passe + sels différents → hashs différents\n• Les tables arc-en-ciel précalculées deviennent inutiles\n• L'attaquant doit recalculer pour chaque sel individuellement"
   },
   {
-    "id": "fc_cm2_04",
-    "chapter": "CM2",
-    "theme": "Pare-feu",
-    "front": "Types de pare-feu",
-    "back": "• Filtrage de paquets (stateless) : IP/port, chaque paquet indépendant\n• Stateful : table d'état des connexions TCP, détecte anomalies\n• Proxy/applicatif : inspecte le contenu applicatif (couche 7)\n• WAF (Web Application Firewall) : spécialisé HTTP/HTTPS\n• NGFW (Next-Gen) : DPI + détection de menaces intégrée\n• Cloud : périmètre réseau cloud"
+    "id": "fc_ch3_05",
+    "chapter": "CH3",
+    "theme": "Fonction à sens unique",
+    "front": "Fonction à sens unique (one-way function)",
+    "back": "Fonction f telle que :\n• f(x) se calcule en temps polynomial (facile)\n• Pour un y donné, trouver x tel que f(x) = y est impossible en temps raisonnable (difficile)\n\nIntroduite au milieu des années 1970, c'est un pilier de la cryptographie moderne.\n\nUtilisations :\n• Fonctions de hachage (SHA-256, MD5...)\n• Cryptographie asymétrique (RSA : facile de calculer n = p×q, difficile de factoriser n)"
   },
   {
-    "id": "fc_cm2_05",
-    "chapter": "CM2",
-    "theme": "IDS/IPS",
-    "front": "IDS vs IPS",
-    "back": "IDS (Intrusion Detection System) :\n• Mode passif (copie du trafic)\n• Détecte et alerte\n• Ne bloque PAS\n\nIPS (Intrusion Prevention System) :\n• Mode inline (dans le flux réseau)\n• Détecte ET bloque en temps réel\n• Peut perturber si mal configuré (faux positifs)\n\nEx: Snort peut fonctionner en IDS (-A cmg) ou IPS (mode -Q avec NFQUEUE)"
+    "id": "fc_ch4_01",
+    "chapter": "CH4",
+    "theme": "Codes correcteurs",
+    "front": "Code détecteur/correcteur d'erreurs",
+    "back": "Ensemble de règles algorithmiques pour détecter et corriger les erreurs de transmission.\n\n3 propriétés attendues :\n1. Bon rendement (ratio info/total élevé)\n2. Bonne capacité de détection/correction\n3. Procédure simple et rapide\n\nExemples :\n• Somme de contrôle IP → détection d'erreurs\n• TCP → correction par retransmission\n• Code de parité → détection simple (1 bit)\n\nDéfi : maximiser la correction en minimisant la redondance ajoutée."
   },
   {
-    "id": "fc_cm2_06",
-    "chapter": "CM2",
-    "theme": "IDS/IPS",
-    "front": "Détection par signature vs anomalie",
-    "back": "Par signature :\n+ Peu de faux positifs\n+ Rapide\n− Aveugle aux zero-day\n\nPar anomalie :\n+ Détecte les attaques inconnues (zero-day)\n+ Comportemental\n− Plus de faux positifs\n− Nécessite apprentissage du 'normal'\n\nLes SIEM modernes combinent les deux."
+    "id": "fc_ch4_02",
+    "chapter": "CH4",
+    "theme": "Code de parité",
+    "front": "Code de parité",
+    "back": "Code détecteur le plus simple : ajouter 1 bit pour contrôler la parité.\n\n• Parité paire : nombre total de bits à 1 est pair\n• Parité impaire : nombre total de bits à 1 est impair\n\nExemples (7 bits ASCII + 1 bit parité) :\n• 'A' = 1000001 → parité impaire : 1 1000001\n• 'C' = 1000011 → parité impaire : 0 1000011\n\nLimites :\n• Ne permet PAS la correction (seulement la détection)\n• Ne détecte PAS les erreurs en nombre pair (2, 4, 6... bits inversés)"
   },
   {
-    "id": "fc_cm2_07",
-    "chapter": "CM2",
-    "theme": "Supervision",
-    "front": "SNMP",
-    "back": "Simple Network Management Protocol.\nPermet de collecter automatiquement des informations sur les équipements réseau (état, performances) et recevoir des alertes.\n\nFonctionnement : agent SNMP sur l'équipement → transmet au serveur de supervision.\n\nOutils : Nagios, Centreon (basé Nagios), Zabbix"
-  },
-  {
-    "id": "fc_cm3_01",
-    "chapter": "CM3",
-    "theme": "Continuité d'activité",
-    "front": "RTO vs RPO",
-    "back": "RTO (Recovery Time Objective) : durée maximale d'interruption acceptable → combien de temps peut-on être en panne ?\n\nRPO (Recovery Point Objective) : perte de données maximale acceptable → jusqu'où peut-on remonter dans le temps ?\n\nEx: RTO=4h, RPO=2h → opérationnel en <4h, sauvegardes toutes les 2h"
-  },
-  {
-    "id": "fc_cm3_02",
-    "chapter": "CM3",
-    "theme": "Types de sauvegarde",
-    "front": "Complète vs Incrémentielle vs Différentielle",
-    "back": "Complète : tout sauvegarde. Lent/volumineux, rapide à restaurer.\n\nIncrémentielle : uniquement les changements depuis le DERNIER backup. Rapide/léger, mais restauration lente (complète + toutes les incrémentales).\n\nDifférentielle : tout depuis la dernière COMPLÈTE. Taille croissante, mais restauration rapide (complète + dernière diff)."
-  },
-  {
-    "id": "fc_cm3_03",
-    "chapter": "CM3",
-    "theme": "Stratégie de sauvegarde",
-    "front": "Règle 3-2-1",
-    "back": "3 copies des données\n2 types de supports différents (ex: HDD local + cloud)\n1 copie hors site\n\nProtège contre : défaillance matérielle, ransomware (si la copie hors site est immuable/offline), sinistre physique (incendie, inondation)."
-  },
-  {
-    "id": "fc_cm3_04",
-    "chapter": "CM3",
-    "theme": "Stratégie de sauvegarde",
-    "front": "Sauvegarde immuable (WORM)",
-    "back": "Write Once Read Many : données non modifiables ni supprimables pendant une période définie.\n\nProtège contre : ransomwares qui ciblent aussi les sauvegardes.\nMême un admin ne peut pas supprimer une sauvegarde WORM.\n\nDisponible : baies NAS/SAN modernes, S3 Object Lock (AWS), Azure Immutable Storage."
-  },
-  {
-    "id": "fc_cm3_05",
-    "chapter": "CM3",
-    "theme": "Sécurisation des échanges",
-    "front": "4 principes de sécurisation des échanges",
-    "back": "Confidentialité : seuls les destinataires autorisés lisent (chiffrement)\n\nIntégrité : le message n'a pas été modifié (hash/MAC/signature)\n\nAuthenticité : le message vient bien de l'expéditeur prétendu (signature numérique)\n\nTraçabilité : non-répudiation, on peut prouver qui a envoyé quoi et quand"
-  },
-  {
-    "id": "fc_cm4_01",
-    "chapter": "CM4",
-    "theme": "Ingénierie sociale",
-    "front": "5 situations de sensibilisation (scénarios du cours)",
-    "back": "1. Partage d'identifiants → perte de traçabilité et imputabilité\n2. Clé USB piégée (baiting) → malware à l'insertion\n3. BYOD / ordinateur personnel → surface d'attaque non contrôlée\n4. Mauvaise config serveur public → services/ports exposés, identifiants défaut\n5. Intrusion physique (tailgating) → contourne les contrôles d'accès"
-  },
-  {
-    "id": "fc_cm4_02",
-    "chapter": "CM4",
-    "theme": "Sensibilisation",
-    "front": "Démarche de sensibilisation efficace",
-    "back": "1. Soutien de la direction (donner l'exemple)\n2. Sensibiliser les managers en premier\n3. Sessions par service (contexte métier)\n4. Simulation phishing AVANT → baseline\n5. Formation (présentiel + exemples vie privée)\n6. Simulation phishing APRÈS → mesure d'amélioration\n\nOutil : GoPhish pour les simulations de phishing"
+    "id": "fc_ch4_03",
+    "chapter": "CH4",
+    "theme": "Somme de contrôle",
+    "front": "Somme de contrôle (checksum)",
+    "back": "Empreinte calculée sur le contenu d'un fichier ou d'un paquet pour vérifier son intégrité.\n\nUtilisation :\n1. L'émetteur calcule le hash du contenu et l'inclut dans le paquet\n2. Le récepteur recalcule le hash et le compare\n3. Si différence → le contenu a été altéré\n\nExemples :\n• md5sum document.txt → checksum MD5\n• sha256sum document.txt → checksum SHA-256\n\nGrâce à l'effet avalanche, la moindre modification (même 1 bit) change complètement le hash."
   }
 ]
