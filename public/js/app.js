@@ -73,6 +73,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     btn.addEventListener('click', () => navigate(btn.dataset.page));
   });
   await loadData();
+  // Update page title and logo from course data
+  const courseTitle = QCM_DATA.title || QCM_DATA.courseId || 'Révision';
+  document.title = courseTitle;
+  document.getElementById('logo').textContent = courseTitle;
   navigate('home');
 });
 
@@ -86,15 +90,21 @@ function renderHome() {
     ? `${PROGRESS.sessions[0].correct}/${PROGRESS.sessions[0].total}`
     : 'Aucune';
 
-  const daysLeft = getDaysUntilExam();
+  const examBadge = (() => {
+    if (!QCM_DATA.examDate) return '';
+    const exam = new Date(QCM_DATA.examDate);
+    const now = new Date();
+    const diff = Math.ceil((exam - now) / (1000 * 60 * 60 * 24));
+    const dateStr = exam.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+    const countdown = diff > 0 ? ` — <strong>${diff} jour${diff > 1 ? 's' : ''}</strong>` : diff === 0 ? " — <strong>aujourd'hui</strong>" : '';
+    return `<div class="exam-badge">📅 ${dateStr}${countdown}</div>`;
+  })();
 
   document.getElementById('app').innerHTML = `
     <div class="home-hero">
-      <h1>Révision R4.B.12</h1>
-      <p>Sécurité système et réseaux — BUT2 Informatique</p>
-      <div class="exam-badge">
-        📅 QCM le 30/03/2026${daysLeft !== null ? ` — <strong>${daysLeft} jour${daysLeft > 1 ? 's' : ''}</strong>` : ''}
-      </div>
+      <h1>${QCM_DATA.title || QCM_DATA.courseId || 'Révision'}</h1>
+      ${QCM_DATA.subtitle ? `<p>${QCM_DATA.subtitle}</p>` : ''}
+      ${examBadge}
     </div>
 
     <div class="home-grid">
@@ -132,12 +142,6 @@ function renderHome() {
   `;
 }
 
-function getDaysUntilExam() {
-  const exam = new Date('2026-03-30');
-  const now = new Date();
-  const diff = Math.ceil((exam - now) / (1000 * 60 * 60 * 24));
-  return diff > 0 ? diff : null;
-}
 
 function getChapterStats(chapter) {
   const all = QCM_DATA.questions.filter(q => q.chapter === chapter);

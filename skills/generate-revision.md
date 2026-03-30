@@ -83,9 +83,16 @@ basename "$PWD"
 ```
 Use the output as the `courseId` value (e.g. `"R4B10"`).
 
+Ask the user (optional):
+- **Course display title** — e.g. "R4.B.10 — Développement web" (shown as page title and hero heading). Default: courseId.
+- **Exam date** — ISO format `"2026-04-15T08:00:00"` if known, for the countdown. Omit if unknown.
+
 ```json
 {
   "courseId": "R4B10",
+  "title": "R4.B.10 — Développement web",
+  "subtitle": "BUT2 Informatique",
+  "examDate": "2026-04-15T08:00:00",
   "chapters": {
     "CM1": { "title": "...", "color": "#7c3aed" },
     "CM2": { "title": "...", "color": "#0891b2" }
