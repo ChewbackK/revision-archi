@@ -9,17 +9,27 @@ const DATA_FILE = path.join(__dirname, 'data.json');
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-function readData() {
-  try {
-    return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-  } catch {
-    return { sessions: [], questionStats: {}, lastUpdated: '' };
-  }
-}
-
 const VALID_ID = /^[a-z0-9_]+$/i;
 const VALID_MODES = ['normal', 'adaptive', 'timed', 'review'];
 const VALID_CONF = ['knew', 'guessed', 'missed', 'unknown'];
+
+function readData() {
+  try {
+    const raw = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    // Migrate old flat format to per-course format
+    if (!raw.courses) {
+      const courseId = raw.courseId || 'default';
+      return {
+        current: courseId,
+        courses: { [courseId]: { sessions: raw.sessions || [], questionStats: raw.questionStats || {} } },
+        lastUpdated: raw.lastUpdated || ''
+      };
+    }
+    return raw;
+  } catch {
+    return { current: null, courses: {}, lastUpdated: '' };
+  }
+}
 
 function writeData(data) {
   data.lastUpdated = new Date().toISOString();
@@ -30,9 +40,20 @@ function writeData(data) {
   }
 }
 
-// GET progress
+function currentCourse(data) {
+  const id = data.current;
+  if (!id || !data.courses[id]) {
+    data.courses[id || 'default'] = { sessions: [], questionStats: {} };
+    data.current = id || 'default';
+  }
+  return data.courses[data.current];
+}
+
+// GET progress — returns current course stats
 app.get('/api/progress', (req, res) => {
-  res.json(readData());
+  const data = readData();
+  const course = currentCourse(data);
+  res.json({ ...course, courseId: data.current });
 });
 
 // POST session result
@@ -44,6 +65,7 @@ app.post('/api/session', (req, res) => {
   }
 
   const data = readData();
+  const course = currentCourse(data);
 
   const session = {
     date: new Date().toISOString(),
@@ -60,15 +82,15 @@ app.post('/api/session', (req, res) => {
         confidence: VALID_CONF.includes(a.confidence) ? a.confidence : 'unknown'
       }))
   };
-  data.sessions.unshift(session);
-  if (data.sessions.length > 50) data.sessions = data.sessions.slice(0, 50);
+  course.sessions.unshift(session);
+  if (course.sessions.length > 50) course.sessions = course.sessions.slice(0, 50);
 
   for (const answer of answers) {
-    if (!VALID_ID.test(answer.id)) continue; // rejette __proto__ etc.
-    if (!data.questionStats[answer.id]) {
-      data.questionStats[answer.id] = { attempts: 0, correct: 0, confidences: [], lastSeen: '' };
+    if (!VALID_ID.test(answer.id)) continue;
+    if (!course.questionStats[answer.id]) {
+      course.questionStats[answer.id] = { attempts: 0, correct: 0, confidences: [], lastSeen: '' };
     }
-    const stat = data.questionStats[answer.id];
+    const stat = course.questionStats[answer.id];
     stat.attempts++;
     if (answer.correct) stat.correct++;
     const conf = VALID_CONF.includes(answer.confidence) ? answer.confidence : null;
@@ -81,13 +103,17 @@ app.post('/api/session', (req, res) => {
   res.json({ ok: true });
 });
 
-// DELETE all progress
+// DELETE progress — reset current course only
 app.delete('/api/progress', (req, res) => {
-  writeData({ sessions: [], questionStats: {}, lastUpdated: '' });
+  const data = readData();
+  if (data.current && data.courses[data.current]) {
+    data.courses[data.current] = { sessions: [], questionStats: {} };
+  }
+  writeData(data);
   res.json({ ok: true });
 });
 
-// POST import course data
+// POST import course data — saves current stats, switches to new course
 app.post('/api/import', (req, res) => {
   const { questions, flashcards, cours } = req.body;
 
@@ -104,6 +130,11 @@ app.post('/api/import', (req, res) => {
     return res.status(400).json({ error: 'Invalid cours.json format (expected array)' });
   }
 
+  // Derive course ID from questions.json (courseId field or chapter keys)
+  const courseId = typeof questions.courseId === 'string' && questions.courseId.trim()
+    ? questions.courseId.trim()
+    : Object.keys(questions.chapters).sort().join('_');
+
   const dataDir = path.join(__dirname, 'public', 'data');
   try {
     fs.writeFileSync(path.join(dataDir, 'questions.json'), JSON.stringify(questions, null, 2));
@@ -113,11 +144,20 @@ app.post('/api/import', (req, res) => {
     return res.status(500).json({ error: 'Failed to write data files: ' + e.message });
   }
 
-  // Reset progress — old question IDs are meaningless for the new course
-  writeData({ sessions: [], questionStats: {}, lastUpdated: '' });
+  // Switch to new course, restoring existing stats if any
+  const data = readData();
+  data.current = courseId;
+  if (!data.courses[courseId]) {
+    data.courses[courseId] = { sessions: [], questionStats: {} };
+  }
+  writeData(data);
+
+  const isReturning = data.courses[courseId].sessions.length > 0;
 
   res.json({
     ok: true,
+    courseId,
+    returning: isReturning,
     stats: {
       questions: questions.questions.length,
       flashcards: flashcards.length,

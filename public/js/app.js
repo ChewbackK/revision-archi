@@ -942,9 +942,10 @@ async function submitImport() {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Erreur serveur');
+    const statsNote = data.returning ? '📊 Statistiques restaurées' : '📊 Nouveau cours — stats vierges';
     result.innerHTML = `<div class="import-success">
-      ✅ Cours importé — ${data.stats.questions} questions · ${data.stats.flashcards} flashcards · ${data.stats.chapters} chapitres
-      <br><small>Statistiques réinitialisées · Rechargement dans 2s…</small>
+      ✅ ${data.courseId} — ${data.stats.questions} questions · ${data.stats.flashcards} flashcards · ${data.stats.chapters} chapitres
+      <br><small>${statsNote} · Rechargement dans 2s…</small>
     </div>`;
     setTimeout(() => location.reload(), 2000);
   } catch (e) {

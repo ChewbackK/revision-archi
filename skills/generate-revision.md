@@ -77,8 +77,15 @@ Do **not** create a new clone per course. This app is shared for all courses.
 
 Create `questions.json` in the **current directory** (the course folder) following this exact schema:
 
+Before generating, get the course ID from the folder name:
+```bash
+basename "$PWD"
+```
+Use the output as the `courseId` value (e.g. `"R4B10"`).
+
 ```json
 {
+  "courseId": "R4B10",
   "chapters": {
     "CM1": { "title": "...", "color": "#7c3aed" },
     "CM2": { "title": "...", "color": "#0891b2" }
