@@ -113,6 +113,9 @@ app.post('/api/import', (req, res) => {
     return res.status(500).json({ error: 'Failed to write data files: ' + e.message });
   }
 
+  // Reset progress — old question IDs are meaningless for the new course
+  writeData({ sessions: [], questionStats: {}, lastUpdated: '' });
+
   res.json({
     ok: true,
     stats: {

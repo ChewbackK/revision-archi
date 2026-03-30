@@ -944,7 +944,7 @@ async function submitImport() {
     if (!res.ok) throw new Error(data.error || 'Erreur serveur');
     result.innerHTML = `<div class="import-success">
       ✅ Cours importé — ${data.stats.questions} questions · ${data.stats.flashcards} flashcards · ${data.stats.chapters} chapitres
-      <br><small>Rechargement dans 2s…</small>
+      <br><small>Statistiques réinitialisées · Rechargement dans 2s…</small>
     </div>`;
     setTimeout(() => location.reload(), 2000);
   } catch (e) {
