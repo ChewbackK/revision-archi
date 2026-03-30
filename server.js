@@ -87,6 +87,42 @@ app.delete('/api/progress', (req, res) => {
   res.json({ ok: true });
 });
 
+// POST import course data
+app.post('/api/import', (req, res) => {
+  const { questions, flashcards, cours } = req.body;
+
+  if (!questions || !flashcards || !cours) {
+    return res.status(400).json({ error: 'Missing questions, flashcards, or cours' });
+  }
+  if (!questions.chapters || !Array.isArray(questions.questions)) {
+    return res.status(400).json({ error: 'Invalid questions.json format' });
+  }
+  if (!Array.isArray(flashcards)) {
+    return res.status(400).json({ error: 'Invalid flashcards.json format (expected array)' });
+  }
+  if (!Array.isArray(cours)) {
+    return res.status(400).json({ error: 'Invalid cours.json format (expected array)' });
+  }
+
+  const dataDir = path.join(__dirname, 'public', 'data');
+  try {
+    fs.writeFileSync(path.join(dataDir, 'questions.json'), JSON.stringify(questions, null, 2));
+    fs.writeFileSync(path.join(dataDir, 'flashcards.json'), JSON.stringify(flashcards, null, 2));
+    fs.writeFileSync(path.join(dataDir, 'cours.json'), JSON.stringify(cours, null, 2));
+  } catch (e) {
+    return res.status(500).json({ error: 'Failed to write data files: ' + e.message });
+  }
+
+  res.json({
+    ok: true,
+    stats: {
+      questions: questions.questions.length,
+      flashcards: flashcards.length,
+      chapters: Object.keys(questions.chapters).length
+    }
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`Serveur de révision démarré : http://localhost:${PORT}`);
 });

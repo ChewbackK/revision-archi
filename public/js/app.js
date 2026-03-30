@@ -64,6 +64,7 @@ function navigate(page) {
     case 'flashcards': renderFlashcards(); break;
     case 'cours':      renderCours(); break;
     case 'dashboard':  break; // handled by fetch above
+    case 'import':     renderImport(); break;
   }
 }
 
@@ -861,4 +862,94 @@ async function resetProgress() {
     PROGRESS = { sessions: [], questionStats: {} };
   }
   renderDashboard();
+}
+
+// ============================================================
+// IMPORT
+// ============================================================
+const importFiles = { questions: null, flashcards: null, cours: null };
+
+function renderImport() {
+  document.getElementById('app').innerHTML = `
+    <div class="import-page">
+      <div class="section-title">📥 Importer un cours</div>
+      <p class="import-subtitle">Sélectionne les 3 fichiers JSON générés par Claude pour charger un nouveau cours.</p>
+
+      <div class="import-grid">
+        <label class="import-slot" id="slot-questions">
+          <input type="file" accept=".json" style="display:none" onchange="handleImportFile(event,'questions')">
+          <span class="import-icon">📝</span>
+          <span class="import-label">questions.json</span>
+          <span class="import-status" id="status-questions">Aucun fichier</span>
+        </label>
+        <label class="import-slot" id="slot-flashcards">
+          <input type="file" accept=".json" style="display:none" onchange="handleImportFile(event,'flashcards')">
+          <span class="import-icon">🃏</span>
+          <span class="import-label">flashcards.json</span>
+          <span class="import-status" id="status-flashcards">Aucun fichier</span>
+        </label>
+        <label class="import-slot" id="slot-cours">
+          <input type="file" accept=".json" style="display:none" onchange="handleImportFile(event,'cours')">
+          <span class="import-icon">📖</span>
+          <span class="import-label">cours.json</span>
+          <span class="import-status" id="status-cours">Aucun fichier</span>
+        </label>
+      </div>
+
+      <button class="import-btn" id="import-submit" disabled onclick="submitImport()">
+        Importer le cours
+      </button>
+      <div id="import-result"></div>
+    </div>
+  `;
+  importFiles.questions = null;
+  importFiles.flashcards = null;
+  importFiles.cours = null;
+}
+
+function handleImportFile(event, key) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      importFiles[key] = JSON.parse(e.target.result);
+      document.getElementById(`status-${key}`).textContent = '✓ ' + file.name;
+      document.getElementById(`slot-${key}`).classList.add('loaded');
+    } catch {
+      document.getElementById(`status-${key}`).textContent = '✗ JSON invalide';
+    }
+    const allLoaded = importFiles.questions && importFiles.flashcards && importFiles.cours;
+    document.getElementById('import-submit').disabled = !allLoaded;
+  };
+  reader.readAsText(file);
+}
+
+async function submitImport() {
+  const btn = document.getElementById('import-submit');
+  const result = document.getElementById('import-result');
+  btn.disabled = true;
+  btn.textContent = 'Import en cours…';
+  try {
+    const res = await fetch('/api/import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        questions: importFiles.questions,
+        flashcards: importFiles.flashcards,
+        cours: importFiles.cours
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Erreur serveur');
+    result.innerHTML = `<div class="import-success">
+      ✅ Cours importé — ${data.stats.questions} questions · ${data.stats.flashcards} flashcards · ${data.stats.chapters} chapitres
+      <br><small>Rechargement dans 2s…</small>
+    </div>`;
+    setTimeout(() => location.reload(), 2000);
+  } catch (e) {
+    result.innerHTML = `<div class="import-error">✗ ${e.message}</div>`;
+    btn.disabled = false;
+    btn.textContent = 'Importer le cours';
+  }
 }
