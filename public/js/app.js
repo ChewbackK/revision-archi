@@ -48,6 +48,7 @@ function navigate(page) {
   }
 
   if (qcmState.timerInterval) { clearInterval(qcmState.timerInterval); qcmState.timerInterval = null; }
+  if (examCountdownInterval && page !== 'home') { clearInterval(examCountdownInterval); examCountdownInterval = null; }
 
   currentPage = page;
   document.querySelectorAll('.nav-btn').forEach(b => {
@@ -93,12 +94,8 @@ function renderHome() {
   const examBadge = (() => {
     if (!QCM_DATA.examDate) return '';
     const exam = new Date(QCM_DATA.examDate);
-    const now = new Date();
-    const diff = Math.ceil((exam - now) / (1000 * 60 * 60 * 24));
-    const sameDay = exam.toDateString() === now.toDateString();
     const dateStr = exam.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-    const countdown = diff > 0 ? ` — <strong>${diff} jour${diff > 1 ? 's' : ''}</strong>` : sameDay ? " — <strong>aujourd'hui !</strong>" : '';
-    return `<div class="exam-badge">📅 ${dateStr}${countdown}</div>`;
+    return `<div class="exam-badge">📅 ${dateStr} — <span id="exam-countdown">…</span></div>`;
   })();
 
   document.getElementById('app').innerHTML = `
@@ -141,8 +138,38 @@ function renderHome() {
       }).join('')}
     </div>
   `;
+
+  if (QCM_DATA.examDate) startExamCountdown();
 }
 
+let examCountdownInterval = null;
+
+function startExamCountdown() {
+  if (examCountdownInterval) clearInterval(examCountdownInterval);
+  const exam = new Date(QCM_DATA.examDate);
+
+  function tick() {
+    const el = document.getElementById('exam-countdown');
+    if (!el) { clearInterval(examCountdownInterval); return; }
+    const ms = exam - new Date();
+    if (ms <= 0) {
+      el.innerHTML = "<strong>c'est maintenant !</strong>";
+      clearInterval(examCountdownInterval);
+      return;
+    }
+    const d = Math.floor(ms / 86400000);
+    const h = Math.floor((ms % 86400000) / 3600000);
+    const m = Math.floor((ms % 3600000) / 60000);
+    const s = Math.floor((ms % 60000) / 1000);
+    const parts = [];
+    if (d > 0) parts.push(`<strong>${d}j</strong>`);
+    parts.push(`<strong>${String(h).padStart(2,'0')}h${String(m).padStart(2,'0')}m${String(s).padStart(2,'0')}s</strong>`);
+    el.innerHTML = parts.join(' ');
+  }
+
+  tick();
+  examCountdownInterval = setInterval(tick, 1000);
+}
 
 function getChapterStats(chapter) {
   const all = QCM_DATA.questions.filter(q => q.chapter === chapter);
