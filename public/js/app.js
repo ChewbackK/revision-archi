@@ -95,8 +95,9 @@ function renderHome() {
     const exam = new Date(QCM_DATA.examDate);
     const now = new Date();
     const diff = Math.ceil((exam - now) / (1000 * 60 * 60 * 24));
+    const sameDay = exam.toDateString() === now.toDateString();
     const dateStr = exam.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-    const countdown = diff > 0 ? ` — <strong>${diff} jour${diff > 1 ? 's' : ''}</strong>` : diff === 0 ? " — <strong>aujourd'hui</strong>" : '';
+    const countdown = diff > 0 ? ` — <strong>${diff} jour${diff > 1 ? 's' : ''}</strong>` : sameDay ? " — <strong>aujourd'hui !</strong>" : '';
     return `<div class="exam-badge">📅 ${dateStr}${countdown}</div>`;
   })();
 
