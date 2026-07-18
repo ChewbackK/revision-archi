@@ -129,7 +129,7 @@ revision-app/
 │       ├── flashcards.json
 │       └── cours.json
 ├── skills/
-│   └── generate-revision.md  — Skill Claude Code à copier dans ~/.claude/skills/
+│   └── generate-revision.md  — Skill Claude Code à copier dans ~/.claude/commands/
 └── .gitignore             — data.json (progression) ignoré
 ```
 
@@ -137,6 +137,6 @@ revision-app/
 
 ## Notes
 
-- La progression (`data.json`) est locale et **non versionnée** — elle ne part pas si tu réinstalle l'app.
+- La progression (`data.json`) est locale et **non versionnée** — elle ne part pas si tu réinstalles l'app.
 - Les fichiers JSON de cours (générés par Claude) peuvent être versionnés dans **ton dossier de cours**, pas dans ce repo.
-- L'app est prévue pour tourner en local uniquement — pas de auth, pas de multi-utilisateur.
+- L'app est prévue pour tourner en local uniquement — pas d'authentification, pas de multi-utilisateur.

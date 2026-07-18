@@ -1,8 +1,23 @@
 {
-  "name": "revision-r4b12",
+  "name": "revision-app",
   "version": "1.0.0",
-  "description": "Site de révision R4.B.12 - Sécurité système et réseaux",
+  "description": "App de révision locale (QCM, flashcards, résumés) générée depuis n'importe quel PDF de cours via un skill Claude Code.",
   "main": "server.js",
+  "keywords": [
+    "revision",
+    "quiz",
+    "flashcards",
+    "spaced-repetition",
+    "claude-code",
+    "express"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ChewbackK/revision-archi.git"
+  },
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js"
